@@ -66,6 +66,8 @@ class MediaController extends Controller
         if ($response instanceof BinaryFileResponse) {
             $response->prepare($this->get('request'));
         }
+        
+        ob_get_clean();
 
         return $response;
     }
