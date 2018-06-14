@@ -26,6 +26,8 @@ class GalleryAdmin extends AbstractAdmin
      */
     protected $pool;
 
+    protected $classnameLabel = 'Gallery';
+
     /**
      * @param string $code
      * @param string $class
@@ -47,18 +49,6 @@ class GalleryAdmin extends AbstractAdmin
         $parameters = $this->getPersistentParameters();
 
         $gallery->setContext($parameters['context']);
-
-        // fix weird bug with setter object not being call
-        $gallery->setGalleryHasMedias($gallery->getGalleryHasMedias());
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function preUpdate($gallery)
-    {
-        // fix weird bug with setter object not being call
-        $gallery->setGalleryHasMedias($gallery->getGalleryHasMedias());
     }
 
     /**
@@ -128,7 +118,7 @@ class GalleryAdmin extends AbstractAdmin
                 ->ifEnd()
             ->end()
             ->with('Gallery')
-                ->add('galleryHasMedias', CollectionType::class, [], [
+                ->add('galleryHasMedias', CollectionType::class, ['by_reference' => false], [
                     'edit' => 'inline',
                     'inline' => 'table',
                     'sortable' => 'position',

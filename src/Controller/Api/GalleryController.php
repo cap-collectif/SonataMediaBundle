@@ -16,12 +16,12 @@ use FOS\RestBundle\Controller\Annotations\QueryParam;
 use FOS\RestBundle\Controller\Annotations\View;
 use FOS\RestBundle\Request\ParamFetcherInterface;
 use FOS\RestBundle\View\View as FOSRestView;
-use JMS\Serializer\SerializationContext;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Sonata\DatagridBundle\Pager\PagerInterface;
 use Sonata\MediaBundle\Model\GalleryHasMediaInterface;
 use Sonata\MediaBundle\Model\GalleryInterface;
 use Sonata\MediaBundle\Model\GalleryManagerInterface;
+use Sonata\MediaBundle\Model\GalleryMediaCollectionInterface;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Model\MediaManagerInterface;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -81,6 +81,7 @@ class GalleryController
      * @QueryParam(name="page", requirements="\d+", default="1", description="Page for gallery list pagination")
      * @QueryParam(name="count", requirements="\d+", default="10", description="Number of galleries by page")
      * @QueryParam(name="enabled", requirements="0|1", nullable=true, strict=true, description="Enabled/Disabled galleries filter")
+     * @QueryParam(name="orderBy", map=true, requirements="ASC|DESC", nullable=true, strict=true, description="Order by array (key is field, value is direction)")
      *
      * @View(serializerGroups={"sonata_api_read"}, serializerEnableMaxDepthChecks=true)
      *
@@ -90,20 +91,6 @@ class GalleryController
      */
     public function getGalleriesAction(ParamFetcherInterface $paramFetcher)
     {
-        $orderByQueryParam = new QueryParam();
-        $orderByQueryParam->name = 'orderBy';
-        $orderByQueryParam->requirements = 'ASC|DESC';
-        $orderByQueryParam->nullable = true;
-        $orderByQueryParam->strict = true;
-        $orderByQueryParam->description = 'Query groups order by clause (key is field, value is direction)';
-        if (property_exists($orderByQueryParam, 'map')) {
-            $orderByQueryParam->map = true;
-        } else {
-            $orderByQueryParam->array = true;
-        }
-
-        $paramFetcher->addParam($orderByQueryParam);
-
         $supportedCriteria = [
             'enabled' => '',
         ];
@@ -431,29 +418,20 @@ class GalleryController
             $galleryHasMedia = $form->getData();
             $galleryHasMedia->setMedia($media);
 
-            $gallery->addGalleryHasMedias($galleryHasMedia);
+            // NEXT_MAJOR: remove this if/else block. Just call `$gallery->addGalleryHasMedia($galleryHasMedia);`
+            if ($gallery instanceof GalleryMediaCollectionInterface) {
+                $gallery->addGalleryHasMedia($galleryHasMedia);
+            } else {
+                $gallery->addGalleryHasMedias($galleryHasMedia);
+            }
             $this->galleryManager->save($gallery);
 
+            $context = new Context();
+            $context->setGroups(['sonata_api_read']);
+            $context->enableMaxDepth();
+
             $view = FOSRestView::create($galleryHasMedia);
-
-            // BC for FOSRestBundle < 2.0
-            if (method_exists($view, 'setSerializationContext')) {
-                $serializationContext = SerializationContext::create();
-                $serializationContext->setGroups(['sonata_api_read']);
-                $serializationContext->enableMaxDepthChecks();
-                $view->setSerializationContext($serializationContext);
-            } else {
-                $context = new Context();
-                $context->setGroups(['sonata_api_read']);
-
-                // NEXT_MAJOR: simplify when dropping FOSRest < 2.1
-                if (method_exists($context, 'disableMaxDepth')) {
-                    $context->disableMaxDepth();
-                } else {
-                    $context->setMaxDepth(0);
-                }
-                $view->setContext($context);
-            }
+            $view->setContext($context);
 
             return $view;
         }
@@ -539,26 +517,12 @@ class GalleryController
             $gallery = $form->getData();
             $this->galleryManager->save($gallery);
 
+            $context = new Context();
+            $context->setGroups(['sonata_api_read']);
+            $context->enableMaxDepth();
+
             $view = FOSRestView::create($gallery);
-
-            // BC for FOSRestBundle < 2.0
-            if (method_exists($view, 'setSerializationContext')) {
-                $serializationContext = SerializationContext::create();
-                $serializationContext->setGroups(['sonata_api_read']);
-                $serializationContext->enableMaxDepthChecks();
-                $view->setSerializationContext($serializationContext);
-            } else {
-                $context = new Context();
-                $context->setGroups(['sonata_api_read']);
-
-                // NEXT_MAJOR: simplify when dropping FOSRest < 2.1
-                if (method_exists($context, 'disableMaxDepth')) {
-                    $context->disableMaxDepth();
-                } else {
-                    $context->setMaxDepth(0);
-                }
-                $view->setContext($context);
-            }
+            $view->setContext($context);
 
             return $view;
         }
