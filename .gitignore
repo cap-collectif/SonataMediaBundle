@@ -1,9 +1,6 @@
-.idea
-.DS_Store
-build
-phpunit.xml
-Resources/doc/_build/*
-nbproject
-coverage
+/build
+/docs/_build
+/vendor
+.php_cs.cache
 composer.lock
-vendor
+phpunit.xml
