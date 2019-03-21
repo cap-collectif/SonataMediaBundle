@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -98,7 +100,7 @@ class UpdateCdnStatusCommand extends BaseCommand
                 $media->setCdnStatus($cdnStatus);
 
                 if (OutputInterface::VERBOSITY_VERBOSE <= $this->output->getVerbosity()) {
-                    if ($previousStatus == $cdnStatus) {
+                    if ($previousStatus === $cdnStatus) {
                         $this->log(sprintf('No changes (%d)', $cdnStatus));
                     } elseif (CDNInterface::STATUS_OK === $cdnStatus) {
                         $this->log(sprintf('<info>Flush completed</info> (%d => %d)', $previousStatus, $cdnStatus));
@@ -141,10 +143,7 @@ class UpdateCdnStatusCommand extends BaseCommand
         }
     }
 
-    /**
-     * @return MediaProviderInterface
-     */
-    private function getProvider()
+    private function getProvider(): MediaProviderInterface
     {
         $providerName = $this->input->getArgument('providerName');
 
@@ -159,10 +158,7 @@ class UpdateCdnStatusCommand extends BaseCommand
         return $this->getMediaPool()->getProvider($providerName);
     }
 
-    /**
-     * @return string
-     */
-    private function getContext()
+    private function getContext(): string
     {
         $context = $this->input->getArgument('context');
 
@@ -177,10 +173,7 @@ class UpdateCdnStatusCommand extends BaseCommand
         return $context;
     }
 
-    /**
-     * @return QuestionHelper
-     */
-    private function getQuestionHelper()
+    private function getQuestionHelper(): QuestionHelper
     {
         return $this->getHelper('question');
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -11,7 +13,7 @@
 
 namespace Sonata\MediaBundle\Twig\Extension;
 
-use Sonata\CoreBundle\Model\ManagerInterface;
+use Sonata\Doctrine\Model\ManagerInterface;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Provider\Pool;
 use Sonata\MediaBundle\Twig\TokenParser\MediaTokenParser;
@@ -81,7 +83,7 @@ class MediaExtension extends \Twig_Extension implements \Twig_Extension_InitRunt
     {
         $media = $this->getMedia($media);
 
-        if (!$media) {
+        if (null === $media) {
             return '';
         }
 
@@ -113,7 +115,7 @@ class MediaExtension extends \Twig_Extension implements \Twig_Extension_InitRunt
     {
         $media = $this->getMedia($media);
 
-        if (!$media) {
+        if (null === $media) {
             return '';
         }
 
@@ -193,23 +195,21 @@ class MediaExtension extends \Twig_Extension implements \Twig_Extension_InitRunt
 
     /**
      * @param mixed $media
-     *
-     * @return MediaInterface|null|bool
      */
-    private function getMedia($media)
+    private function getMedia($media): ?MediaInterface
     {
-        if (!$media instanceof MediaInterface && \strlen($media) > 0) {
+        if (!$media instanceof MediaInterface && \strlen((string) $media) > 0) {
             $media = $this->mediaManager->findOneBy([
                 'id' => $media,
             ]);
         }
 
         if (!$media instanceof MediaInterface) {
-            return false;
+            return null;
         }
 
         if (MediaInterface::STATUS_OK !== $media->getProviderStatus()) {
-            return false;
+            return null;
         }
 
         return $media;

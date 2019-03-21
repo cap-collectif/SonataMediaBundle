@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -11,7 +13,7 @@
 
 namespace Sonata\MediaBundle\Document;
 
-use Sonata\CoreBundle\Model\BaseDocumentManager;
+use Sonata\Doctrine\Document\BaseDocumentManager;
 
 class MediaManager extends BaseDocumentManager
 {
@@ -26,7 +28,7 @@ class MediaManager extends BaseDocumentManager
         }
 
         // BC compatibility for $providerName parameter
-        if (3 == \func_num_args()) {
+        if (3 === \func_num_args()) {
             $entity->setProviderName(func_get_arg(2));
         }
 

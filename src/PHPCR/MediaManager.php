@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -11,7 +13,7 @@
 
 namespace Sonata\MediaBundle\PHPCR;
 
-use Sonata\CoreBundle\Model\BasePHPCRManager;
+use Sonata\Doctrine\Document\BasePHPCRManager;
 
 class MediaManager extends BasePHPCRManager
 {
@@ -26,7 +28,7 @@ class MediaManager extends BasePHPCRManager
         }
 
         // BC compatibility for $providerName parameter
-        if (3 == \func_num_args()) {
+        if (3 === \func_num_args()) {
             $entity->setProviderName(func_get_arg(2));
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -10,7 +12,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
-use Sonata\CoreBundle\Model\ManagerInterface;
+use Sonata\Doctrine\Model\ManagerInterface;
 use Sonata\MediaBundle\Model\Media;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Provider\MediaProviderInterface;
@@ -42,7 +44,7 @@ class MediaExtensionTest extends TestCase
      */
     private $media;
 
-    public function testThumbnailHasAllNecessaryAttributes()
+    public function testThumbnailHasAllNecessaryAttributes(): void
     {
         $mediaExtension = new MediaExtension($this->getMediaService(), $this->getMediaManager());
         $mediaExtension->initRuntime($this->getEnvironment());

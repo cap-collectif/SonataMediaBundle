@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -126,7 +128,7 @@ class RemoveThumbsCommand extends BaseCommand
                 $provider->getFilesystem()->clearFileRegister();
             }
 
-            if ($batchesLimit > 0 && $batchCounter == $batchesLimit) {
+            if ($batchesLimit > 0 && $batchCounter === $batchesLimit) {
                 break;
             }
         } while (true);
@@ -240,10 +242,7 @@ class RemoveThumbsCommand extends BaseCommand
         }
     }
 
-    /**
-     * @return QuestionHelper
-     */
-    private function getQuestionHelper()
+    private function getQuestionHelper(): QuestionHelper
     {
         return $this->getHelper('question');
     }

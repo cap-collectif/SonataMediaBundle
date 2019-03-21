@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -13,7 +15,6 @@ namespace Sonata\MediaBundle\Provider;
 
 use Gaufrette\Filesystem;
 use Imagine\Image\ImagineInterface;
-use Sonata\CoreBundle\Model\Metadata;
 use Sonata\MediaBundle\CDN\CDNInterface;
 use Sonata\MediaBundle\Generator\GeneratorInterface;
 use Sonata\MediaBundle\Metadata\MetadataBuilderInterface;
@@ -52,7 +53,13 @@ class ImageProvider extends FileProvider
      */
     public function getProviderMetadata()
     {
-        return new Metadata($this->getName(), $this->getName().'.description', false, 'SonataMediaBundle', ['class' => 'fa fa-picture-o']);
+        return new Metadata(
+            $this->getName(),
+            $this->getName().'.description',
+            null,
+            'SonataMediaBundle',
+            ['class' => 'fa fa-picture-o']
+        );
     }
 
     /**
@@ -60,6 +67,10 @@ class ImageProvider extends FileProvider
      */
     public function getHelperProperties(MediaInterface $media, $format, $options = [])
     {
+        if (isset($options['srcset'], $options['picture'])) {
+            throw new \LogicException("The 'srcset' and 'picture' options must not be used simultaneously.");
+        }
+
         if (MediaProviderInterface::FORMAT_REFERENCE === $format) {
             $box = $media->getBox();
         } else {
@@ -82,7 +93,23 @@ class ImageProvider extends FileProvider
             'height' => $box->getHeight(),
         ];
 
-        if (MediaProviderInterface::FORMAT_ADMIN !== $format) {
+        if (isset($options['picture'])) {
+            $pictureParams = [];
+            foreach ($options['picture'] as $key => $pictureFormat) {
+                $formatName = $this->getFormatName($media, $pictureFormat);
+                $settings = $this->getFormat($formatName);
+                $src = $this->generatePublicUrl($media, $formatName);
+                $mediaQuery = \is_string($key)
+                    ? $key
+                    : sprintf('(max-width: %dpx)', $this->resizer->getBox($media, $settings)->getWidth());
+
+                $pictureParams['source'][] = ['media' => $mediaQuery, 'srcset' => $src];
+            }
+
+            unset($options['picture']);
+            $pictureParams['img'] = $params + $options;
+            $params = ['picture' => $pictureParams];
+        } elseif (MediaProviderInterface::FORMAT_ADMIN !== $format) {
             $srcSetFormats = $this->getFormats();
 
             if (isset($options['srcset']) && \is_array($options['srcset'])) {
@@ -200,8 +227,8 @@ class ImageProvider extends FileProvider
             return;
         }
 
-        if (!\in_array(strtolower(pathinfo($fileName, PATHINFO_EXTENSION)), $this->allowedExtensions)
-            || !\in_array($media->getBinaryContent()->getMimeType(), $this->allowedMimeTypes)) {
+        if (!\in_array(strtolower(pathinfo($fileName, PATHINFO_EXTENSION)), $this->allowedExtensions, true)
+            || !\in_array($media->getBinaryContent()->getMimeType(), $this->allowedMimeTypes, true)) {
             return;
         }
 

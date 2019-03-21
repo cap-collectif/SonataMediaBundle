@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -67,7 +69,7 @@ class CleanMediaCommandTest extends FilesystemTestCase
     /**
      * {@inheritdoc}
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -102,7 +104,7 @@ class CleanMediaCommandTest extends FilesystemTestCase
             }));
     }
 
-    public function testExecuteDirectoryNotExists()
+    public function testExecuteDirectoryNotExists(): void
     {
         $context = [
             'providers' => [],
@@ -119,7 +121,7 @@ class CleanMediaCommandTest extends FilesystemTestCase
         $this->assertSame(0, $output);
     }
 
-    public function testExecuteEmptyDirectory()
+    public function testExecuteEmptyDirectory(): void
     {
         $this->filesystem->mkdir($this->workspace.\DIRECTORY_SEPARATOR.'foo');
 
@@ -138,7 +140,7 @@ class CleanMediaCommandTest extends FilesystemTestCase
         $this->assertSame(0, $output);
     }
 
-    public function testExecuteFilesExists()
+    public function testExecuteFilesExists(): void
     {
         $this->filesystem->mkdir($this->workspace.\DIRECTORY_SEPARATOR.'foo');
         $this->filesystem->touch($this->workspace.\DIRECTORY_SEPARATOR.'foo'.\DIRECTORY_SEPARATOR.'qwertz.ext');
@@ -172,7 +174,7 @@ class CleanMediaCommandTest extends FilesystemTestCase
         $this->assertSame(0, $output);
     }
 
-    public function testExecuteFilesExistsVerbose()
+    public function testExecuteFilesExistsVerbose(): void
     {
         $this->filesystem->mkdir($this->workspace.\DIRECTORY_SEPARATOR.'foo');
         $this->filesystem->touch($this->workspace.\DIRECTORY_SEPARATOR.'foo'.\DIRECTORY_SEPARATOR.'qwertz.ext');
@@ -215,7 +217,7 @@ class CleanMediaCommandTest extends FilesystemTestCase
         $this->assertSame(0, $output);
     }
 
-    public function testExecuteDryRun()
+    public function testExecuteDryRun(): void
     {
         $this->filesystem->mkdir($this->workspace.\DIRECTORY_SEPARATOR.'foo');
         $this->filesystem->touch($this->workspace.\DIRECTORY_SEPARATOR.'foo'.\DIRECTORY_SEPARATOR.'qwertz.ext');
@@ -235,7 +237,7 @@ class CleanMediaCommandTest extends FilesystemTestCase
 
         $this->mediaManager->expects($this->once())->method('findOneBy')
             ->with($this->equalTo(['id' => 1, 'context' => 'foo']))
-            ->will($this->returnValue([]));
+            ->will($this->returnValue(null));
         $this->mediaManager->expects($this->once())->method('findBy')
             ->with($this->equalTo(['providerReference' => 'qwertz.ext', 'providerName' => ['fooprovider']]))
             ->will($this->returnValue([]));
@@ -253,7 +255,7 @@ class CleanMediaCommandTest extends FilesystemTestCase
         $this->assertSame(0, $output);
     }
 
-    public function testExecute()
+    public function testExecute(): void
     {
         $this->filesystem->mkdir($this->workspace.\DIRECTORY_SEPARATOR.'foo');
         $this->filesystem->touch($this->workspace.\DIRECTORY_SEPARATOR.'foo'.\DIRECTORY_SEPARATOR.'qwertz.ext');
@@ -273,7 +275,7 @@ class CleanMediaCommandTest extends FilesystemTestCase
 
         $this->mediaManager->expects($this->once())->method('findOneBy')
             ->with($this->equalTo(['id' => 1, 'context' => 'foo']))
-            ->will($this->returnValue([]));
+            ->will($this->returnValue(null));
         $this->mediaManager->expects($this->once())->method('findBy')
             ->with($this->equalTo(['providerReference' => 'qwertz.ext', 'providerName' => ['fooprovider']]))
             ->will($this->returnValue([]));
@@ -298,8 +300,11 @@ class CleanMediaCommandTest extends FilesystemTestCase
      * @param array  $expected Excerpts of text expected to be found in the output
      * @param string $output   Searched output
      */
-    private function assertOutputFoundInContext($extractor, $expected, $output)
-    {
+    private function assertOutputFoundInContext(
+        string $extractor,
+        array $expected,
+        string $output
+    ): void {
         preg_match_all($extractor, $output, $matches);
 
         $found = false;
@@ -322,10 +327,9 @@ class CleanMediaCommandTest extends FilesystemTestCase
     /**
      * Returns whether every needle can be found as a substring of the haystack.
      *
-     * @param string $haystack
-     * @param array  $needles  Array of (potential) substrings of the haystack
+     * @param array $needles Array of (potential) substrings of the haystack
      */
-    private function containsAll($haystack, $needles)
+    private function containsAll(string $haystack, array $needles)
     {
         foreach ($needles as $needle) {
             if (false === strpos($haystack, $needle)) {

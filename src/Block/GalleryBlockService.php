@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -17,10 +19,10 @@ use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Form\Type\ModelListType;
 use Sonata\BlockBundle\Block\BlockContextInterface;
 use Sonata\BlockBundle\Block\Service\AbstractAdminBlockService;
+use Sonata\BlockBundle\Meta\Metadata;
 use Sonata\BlockBundle\Model\BlockInterface;
-use Sonata\CoreBundle\Form\Type\ImmutableArrayType;
-use Sonata\CoreBundle\Model\ManagerInterface;
-use Sonata\CoreBundle\Model\Metadata;
+use Sonata\Doctrine\Model\ManagerInterface;
+use Sonata\Form\Type\ImmutableArrayType;
 use Sonata\MediaBundle\Model\GalleryInterface;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Provider\Pool;
@@ -242,12 +244,7 @@ class GalleryBlockService extends AbstractAdminBlockService
         ]);
     }
 
-    /**
-     * @param GalleryInterface $gallery
-     *
-     * @return array
-     */
-    private function buildElements(GalleryInterface $gallery)
+    private function buildElements(GalleryInterface $gallery): array
     {
         $elements = [];
         foreach ($gallery->getGalleryHasMedias() as $galleryHasMedia) {
@@ -257,7 +254,7 @@ class GalleryBlockService extends AbstractAdminBlockService
 
             $type = $this->getMediaType($galleryHasMedia->getMedia());
 
-            if (!$type) {
+            if (null === $type) {
                 continue;
             }
 
@@ -272,19 +269,15 @@ class GalleryBlockService extends AbstractAdminBlockService
         return $elements;
     }
 
-    /**
-     * @param MediaInterface $media
-     *
-     * @return false|string
-     */
-    private function getMediaType(MediaInterface $media)
+    private function getMediaType(MediaInterface $media): ?string
     {
-        if ('video/x-flv' == $media->getContentType()) {
+        if ('video/x-flv' === $media->getContentType()) {
             return 'video';
-        } elseif ('image' == substr($media->getContentType(), 0, 5)) {
+        }
+        if ('image' === substr($media->getContentType(), 0, 5)) {
             return 'image';
         }
 
-        return false;
+        return null;
     }
 }

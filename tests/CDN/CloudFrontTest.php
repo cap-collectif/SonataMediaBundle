@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -11,6 +13,7 @@
 
 namespace Sonata\MediaBundle\Tests\CDN;
 
+use Aws\CloudFront\CloudFrontClient;
 use PHPUnit\Framework\TestCase;
 use Sonata\MediaBundle\CDN\CloudFront;
 
@@ -22,7 +25,7 @@ class CloudFrontTest extends TestCase
     /**
      * @group legacy
      */
-    public function testLegacyCloudFront()
+    public function testLegacyCloudFront(): void
     {
         $client = $this->getMockBuilder(CloudFrontClientSpy::class)
             ->setMethods(['createInvalidation'])
@@ -49,7 +52,7 @@ class CloudFrontTest extends TestCase
     /**
      * @group legacy
      */
-    public function testLegacyException()
+    public function testLegacyException(): void
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Unable to flush : ');
@@ -67,7 +70,7 @@ class CloudFrontTest extends TestCase
     }
 }
 
-class CloudFrontClientSpy
+class CloudFrontClientSpy extends CloudFrontClient
 {
     public function createInvalidation()
     {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -12,7 +14,8 @@
 namespace Sonata\MediaBundle\Tests\Controller;
 
 use PHPUnit\Framework\TestCase;
-use Sonata\CoreBundle\Model\BaseEntityManager;
+use Prophecy\Prophecy\ObjectProphecy;
+use Sonata\Doctrine\Entity\BaseEntityManager;
 use Sonata\MediaBundle\Controller\MediaController;
 use Sonata\MediaBundle\Model\Media;
 use Sonata\MediaBundle\Provider\MediaProviderInterface;
@@ -32,7 +35,7 @@ class MediaControllerTest extends TestCase
     protected $container;
     protected $controller;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->container = $this->prophesize(Container::class);
 
@@ -40,7 +43,7 @@ class MediaControllerTest extends TestCase
         $this->controller->setContainer($this->container->reveal());
     }
 
-    public function testDownloadActionWithNotFoundMedia()
+    public function testDownloadActionWithNotFoundMedia(): void
     {
         $this->expectException(NotFoundHttpException::class);
 
@@ -49,7 +52,7 @@ class MediaControllerTest extends TestCase
         $this->controller->downloadAction(1);
     }
 
-    public function testDownloadActionAccessDenied()
+    public function testDownloadActionAccessDenied(): void
     {
         $this->expectException(AccessDeniedException::class);
 
@@ -65,7 +68,7 @@ class MediaControllerTest extends TestCase
         $this->controller->downloadAction(1);
     }
 
-    public function testDownloadActionBinaryFile()
+    public function testDownloadActionBinaryFile(): void
     {
         $media = $this->prophesize(Media::class);
         $pool = $this->prophesize(Pool::class);
@@ -87,7 +90,7 @@ class MediaControllerTest extends TestCase
         $this->assertSame($response->reveal(), $result);
     }
 
-    public function testViewActionWithNotFoundMedia()
+    public function testViewActionWithNotFoundMedia(): void
     {
         $this->expectException(NotFoundHttpException::class);
 
@@ -96,7 +99,7 @@ class MediaControllerTest extends TestCase
         $this->controller->viewAction(1);
     }
 
-    public function testViewActionAccessDenied()
+    public function testViewActionAccessDenied(): void
     {
         $this->expectException(AccessDeniedException::class);
 
@@ -112,7 +115,7 @@ class MediaControllerTest extends TestCase
         $this->controller->viewAction(1);
     }
 
-    public function testViewActionRendersView()
+    public function testViewActionRendersView(): void
     {
         $media = $this->prophesize(Media::class);
         $pool = $this->prophesize(Pool::class);
@@ -136,15 +139,19 @@ class MediaControllerTest extends TestCase
         $this->assertSame('renderResponse', $response->getContent());
     }
 
-    private function configureDownloadSecurity($pool, $media, $request, $isGranted)
-    {
+    private function configureDownloadSecurity(
+        ObjectProphecy $pool,
+        Media $media,
+        Request $request,
+        bool $isGranted
+    ): void {
         $strategy = $this->prophesize(DownloadStrategyInterface::class);
 
         $pool->getDownloadSecurity($media)->willReturn($strategy->reveal());
         $strategy->isGranted($media, $request)->willReturn($isGranted);
     }
 
-    private function configureGetMedia($id, $media)
+    private function configureGetMedia(int $id, ?Media $media): void
     {
         $mediaManager = $this->prophesize(BaseEntityManager::class);
 
@@ -152,13 +159,16 @@ class MediaControllerTest extends TestCase
         $mediaManager->find($id)->willReturn($media);
     }
 
-    private function configureGetProvider($pool, $media, $provider)
-    {
+    private function configureGetProvider(
+        ObjectProphecy $pool,
+        ObjectProphecy $media,
+        MediaProviderInterface $provider
+    ): void {
         $pool->getProvider('provider')->willReturn($provider);
         $media->getProviderName()->willReturn('provider');
     }
 
-    private function configureGetCurrentRequest($request)
+    private function configureGetCurrentRequest(Request $request): void
     {
         $requestStack = $this->prophesize(RequestStack::class);
 
@@ -167,8 +177,11 @@ class MediaControllerTest extends TestCase
         $requestStack->getCurrentRequest()->willReturn($request);
     }
 
-    private function configureRender($template, $data, $rendered)
-    {
+    private function configureRender(
+        string $template,
+        array $data,
+        string $rendered
+    ): void {
         $templating = $this->prophesize(EngineInterface::class);
         $response = $this->prophesize(Response::class);
         $pool = $this->prophesize(Pool::class);

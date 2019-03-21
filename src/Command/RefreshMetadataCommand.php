@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -114,10 +116,7 @@ class RefreshMetadataCommand extends BaseCommand
         }
     }
 
-    /**
-     * @return MediaProviderInterface
-     */
-    private function getProvider()
+    private function getProvider(): MediaProviderInterface
     {
         $providerName = $this->input->getArgument('providerName');
 
@@ -132,10 +131,7 @@ class RefreshMetadataCommand extends BaseCommand
         return $this->getMediaPool()->getProvider($providerName);
     }
 
-    /**
-     * @return string
-     */
-    private function getContext()
+    private function getContext(): string
     {
         $context = $this->input->getArgument('context');
 
@@ -150,10 +146,7 @@ class RefreshMetadataCommand extends BaseCommand
         return $context;
     }
 
-    /**
-     * @return QuestionHelper
-     */
-    private function getQuestionHelper()
+    private function getQuestionHelper(): QuestionHelper
     {
         return $this->getHelper('question');
     }

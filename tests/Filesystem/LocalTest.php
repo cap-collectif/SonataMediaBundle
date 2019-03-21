@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -16,12 +18,12 @@ use Sonata\MediaBundle\Filesystem\Local;
 
 class LocalTest extends TestCase
 {
-    public function testReplicate()
+    public function testReplicate(): void
     {
         $local = new Local('/tmp');
 
         // check if OS is Mac OS X where /tmp is a symlink to /private/tmp
-        $result = 'Darwin' == php_uname('s') ? '/private/tmp' : '/tmp';
+        $result = 'Darwin' === php_uname('s') ? '/private/tmp' : '/tmp';
 
         $this->assertSame($result, $local->getDirectory());
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -15,7 +17,6 @@ use Buzz\Browser;
 use Gaufrette\Filesystem;
 use Imagine\Image\Box;
 use Sonata\AdminBundle\Form\FormMapper;
-use Sonata\CoreBundle\Model\Metadata;
 use Sonata\MediaBundle\CDN\CDNInterface;
 use Sonata\MediaBundle\Generator\GeneratorInterface;
 use Sonata\MediaBundle\Metadata\MetadataBuilderInterface;
@@ -235,8 +236,8 @@ abstract class BaseVideoProvider extends BaseProvider
 
         if (isset($options['width']) || isset($options['height'])) {
             $settings = [
-                'width' => isset($options['width']) ? $options['width'] : null,
-                'height' => isset($options['height']) ? $options['height'] : null,
+                'width' => $options['width'] ?? null,
+                'height' => $options['height'] ?? null,
             ];
         } else {
             $settings = $this->getFormat($format);

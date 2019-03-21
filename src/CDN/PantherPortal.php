@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -107,7 +109,7 @@ class PantherPortal implements CDNInterface
     {
         $result = $this->getClient()->flush($this->username, $this->password, 'paths', $this->siteId, implode("\n", $paths), true, false);
 
-        if ('Flush successfully submitted.' != $result) {
+        if ('Flush successfully submitted.' !== $result) {
             throw new \RuntimeException('Unable to flush : '.$result);
         }
     }
@@ -130,12 +132,7 @@ class PantherPortal implements CDNInterface
         // nothing to do
     }
 
-    /**
-     * Return a SoapClient.
-     *
-     * @return \SoapClient
-     */
-    private function getClient()
+    private function getClient(): \SoapClient
     {
         if (!$this->client) {
             $this->client = new \SoapClient($this->wsdl);

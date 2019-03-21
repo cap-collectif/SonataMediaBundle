@@ -2,6 +2,68 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.19.1](https://github.com/sonata-project/SonataMediaBundle/compare/3.19.0...3.19.1) - 2019-02-23
+
+### Fixed
+- return type for `CategoryManager::find()`
+- Crash about `setFormTheme` when viewing the gallery list
+
+## [3.19.0](https://github.com/sonata-project/SonataMediaBundle/compare/3.18.1...3.19.0) - 2019-02-21
+
+### Added
+- Added configuration option for the media helper to generate a <picture> instead of <img>
+
+### Changed
+- Sort galleryHasMedias on GalleryAdmin::postUpdate
+
+### Fixed
+- `SimpleResizer::computeBox()` will return the size of the resulting image
+  instead of just the scaled image before the cropping step.
+- Fix configuration defaults: omitted dimensions in format definitions must be `null`
+- Strict checking of height/width sizes in formats configuration
+- Crash about `setFormTheme` when viewing the media list
+- `TypeError` on media upload when validation fails for another field
+
+## [3.18.1](https://github.com/sonata-project/SonataMediaBundle/compare/3.18.0...3.18.1) - 2019-01-21
+### Fixed
+- crash about wrong provider argument type when trying to upload a media
+
+## [3.18.0](https://github.com/sonata-project/SonataMediaBundle/compare/3.17.1...3.18.0) - 2019-01-18
+
+### Added
+- Added alias for providers to use autoconfigure via DependencyInjection
+- Added `Sonata\MediaBundle\Provider\Metadata` class
+
+### Changed
+- Changed `MediaProviderInterface::getProviderMetadata` return type in PHPDoc
+- block classes will use the block specific Metadata class
+
+### Removed
+- Removed CoreBundle deprecations
+
+## [3.17.1](https://github.com/sonata-project/SonataMediaBundle/compare/3.17.0...3.17.1) - 2019-01-12
+
+### Fixes
+- crashes on pages with null medias
+
+## [3.17.0](https://github.com/sonata-project/SonataMediaBundle/compare/3.16.3...3.17.0) - 2019-01-10
+### Added
+- Added an alias for the pool
+- Possiblity to create custom resizers
+
+### Changed
+- Allow KnpLabs/Gaufrette 0.8
+
+### Removed
+- support for php 5 and php 7.0
+
+### Fixed
+- Fix deprecation for symfony/config 4.2+
+- Deprecations about `Sonata\CoreBundle\Model\BaseEntityManager`
+
+### Deprecated
+- Undeprecated `MediaManagerInterface`
+
 ## [3.16.3](https://github.com/sonata-project/SonataMediaBundle/compare/3.16.2...3.16.3) - 2018-11-05
 ### Fixed
 - Added missing methods to `FormatterMediaExtension`

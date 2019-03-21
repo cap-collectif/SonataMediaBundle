@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -54,7 +56,7 @@ class FormatValidator extends ConstraintValidator
         $galleryDefaultFormat = $value->getDefaultFormat();
 
         if (MediaProviderInterface::FORMAT_REFERENCE !== $galleryDefaultFormat
-            && !($formats && array_key_exists($galleryDefaultFormat, $formats))) {
+            && !($formats && \array_key_exists($galleryDefaultFormat, $formats))) {
             $this->context->addViolation('invalid format');
         }
     }

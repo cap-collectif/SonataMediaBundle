@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -278,7 +280,7 @@ class GalleryController
         $media = $this->getMedia($mediaId);
 
         foreach ($gallery->getGalleryHasMedias() as $galleryHasMedia) {
-            if ($galleryHasMedia->getMedia()->getId() == $media->getId()) {
+            if ($galleryHasMedia->getMedia()->getId() === $media->getId()) {
                 return FOSRestView::create([
                     'error' => sprintf('Gallery "%s" already has media "%s"', $galleryId, $mediaId),
                 ], 400);
@@ -318,7 +320,7 @@ class GalleryController
         $media = $this->getMedia($mediaId);
 
         foreach ($gallery->getGalleryHasMedias() as $galleryHasMedia) {
-            if ($galleryHasMedia->getMedia()->getId() == $media->getId()) {
+            if ($galleryHasMedia->getMedia()->getId() === $media->getId()) {
                 return $this->handleWriteGalleryhasmedia($gallery, $media, $galleryHasMedia, $request);
             }
         }
@@ -354,7 +356,7 @@ class GalleryController
         $media = $this->getMedia($mediaId);
 
         foreach ($gallery->getGalleryHasMedias() as $key => $galleryHasMedia) {
-            if ($galleryHasMedia->getMedia()->getId() == $media->getId()) {
+            if ($galleryHasMedia->getMedia()->getId() === $media->getId()) {
                 $gallery->getGalleryHasMedias()->remove($key);
                 $this->getGalleryManager()->save($gallery);
 

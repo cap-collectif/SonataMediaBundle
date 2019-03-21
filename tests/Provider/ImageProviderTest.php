@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -65,13 +67,13 @@ class ImageProviderTest extends AbstractProviderTest
 
         $metadata = $this->createMock(MetadataBuilderInterface::class);
 
-        $provider = new ImageProvider('file', $filesystem, $cdn, $generator, $thumbnail, $allowedExtensions, $allowedMimeTypes, $adapter, $metadata);
+        $provider = new ImageProvider('image', $filesystem, $cdn, $generator, $thumbnail, $allowedExtensions, $allowedMimeTypes, $adapter, $metadata);
         $provider->setResizer($resizer);
 
         return $provider;
     }
 
-    public function testProvider()
+    public function testProvider(): void
     {
         $provider = $this->getProvider();
 
@@ -91,7 +93,17 @@ class ImageProviderTest extends AbstractProviderTest
         $this->assertSame('default/0011/24/thumb_1023456_big.png', $provider->generatePrivateUrl($media, 'big'));
     }
 
-    public function testHelperProperies()
+    public function testHelperOptions(): void
+    {
+        $this->expectException(\LogicException::class);
+
+        $provider = $this->getProvider([], [], $this->returnValue(new Box(50, 50)));
+        $media = new Media();
+
+        $provider->getHelperProperties($media, 'any_format', ['srcset' => [], 'picture' => []]);
+    }
+
+    public function testHelperProperties(): void
     {
         $adminBox = new Box(100, 100);
         $mediumBox = new Box(500, 250);
@@ -107,7 +119,13 @@ class ImageProviderTest extends AbstractProviderTest
                 $mediumBox, // second call
                 $mediumBox,
                 $largeBox,
-                $adminBox // Third call
+                $adminBox, // Third call
+                $largeBox, // Fourth call
+                $mediumBox,
+                $largeBox,
+                $largeBox, // Fifth call
+                $mediumBox,
+                $largeBox
             ));
 
         $provider->addFormat('admin', ['width' => 100]);
@@ -151,9 +169,29 @@ class ImageProviderTest extends AbstractProviderTest
         $this->assertArrayNotHasKey('srcset', $properties);
 
         $this->assertSame(150, $properties['width']);
+
+        $properties = $provider->getHelperProperties($media, 'default_large', ['picture' => ['default_medium', 'default_large'], 'class' => 'some-class']);
+        $this->assertArrayHasKey('picture', $properties);
+        $this->assertArrayNotHasKey('srcset', $properties);
+        $this->assertArrayNotHasKey('sizes', $properties);
+        $this->assertArrayHasKey('source', $properties['picture']);
+        $this->assertArrayHasKey('img', $properties['picture']);
+        $this->assertArrayHasKey('class', $properties['picture']['img']);
+        $this->assertArrayHasKey('media', $properties['picture']['source'][0]);
+        $this->assertSame('(max-width: 500px)', $properties['picture']['source'][0]['media']);
+
+        $properties = $provider->getHelperProperties($media, 'default_large', ['picture' => ['(max-width: 200px)' => 'default_medium', 'default_large'], 'class' => 'some-class']);
+        $this->assertArrayHasKey('picture', $properties);
+        $this->assertArrayNotHasKey('srcset', $properties);
+        $this->assertArrayNotHasKey('sizes', $properties);
+        $this->assertArrayHasKey('source', $properties['picture']);
+        $this->assertArrayHasKey('img', $properties['picture']);
+        $this->assertArrayHasKey('class', $properties['picture']['img']);
+        $this->assertArrayHasKey('media', $properties['picture']['source'][0]);
+        $this->assertSame('(max-width: 200px)', $properties['picture']['source'][0]['media']);
     }
 
-    public function testThumbnail()
+    public function testThumbnail(): void
     {
         $provider = $this->getProvider();
 
@@ -174,7 +212,7 @@ class ImageProviderTest extends AbstractProviderTest
         $this->assertSame('default/0011/24/thumb_1023456_big.png', $provider->generatePrivateUrl($media, 'big'));
     }
 
-    public function testEvent()
+    public function testEvent(): void
     {
         $provider = $this->getProvider();
 
@@ -199,7 +237,7 @@ class ImageProviderTest extends AbstractProviderTest
         $provider->postRemove($media);
     }
 
-    public function testTransformFormatNotSupported()
+    public function testTransformFormatNotSupported(): void
     {
         $provider = $this->getProvider();
 
@@ -210,5 +248,16 @@ class ImageProviderTest extends AbstractProviderTest
 
         $this->assertNull($provider->transform($media));
         $this->assertNull($media->getWidth(), 'Width staid null');
+    }
+
+    public function testMetadata(): void
+    {
+        $provider = $this->getProvider();
+
+        $this->assertSame('image', $provider->getProviderMetadata()->getTitle());
+        $this->assertSame('image.description', $provider->getProviderMetadata()->getDescription());
+        $this->assertNotNull($provider->getProviderMetadata()->getImage());
+        $this->assertSame('fa fa-picture-o', $provider->getProviderMetadata()->getOption('class'));
+        $this->assertSame('SonataMediaBundle', $provider->getProviderMetadata()->getDomain());
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -11,7 +13,7 @@
 
 namespace Sonata\MediaBundle\Form\Type;
 
-use Sonata\CoreBundle\Form\Type\BaseDoctrineORMSerializationType;
+use Sonata\Form\Type\BaseDoctrineORMSerializationType;
 
 class ApiGalleryHasMediaType extends BaseDoctrineORMSerializationType
 {

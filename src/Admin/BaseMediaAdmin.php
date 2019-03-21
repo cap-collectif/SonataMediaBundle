@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -15,7 +17,7 @@ use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Form\Type\ModelListType;
-use Sonata\CoreBundle\Model\Metadata;
+use Sonata\BlockBundle\Meta\Metadata;
 use Sonata\MediaBundle\Form\DataTransformer\ProviderDataTransformer;
 use Sonata\MediaBundle\Model\CategoryManagerInterface;
 use Sonata\MediaBundle\Provider\MediaProviderInterface;
@@ -73,7 +75,7 @@ abstract class BaseMediaAdmin extends AbstractAdmin
         }
 
         $filter = $this->getRequest()->get('filter');
-        if ($filter && array_key_exists('context', $this->getRequest()->get('filter'))) {
+        if ($filter && \array_key_exists('context', $this->getRequest()->get('filter'))) {
             $context = $filter['context']['value'];
         } else {
             $context = $this->getRequest()->get('context', $this->pool->getDefaultContext());
@@ -84,7 +86,7 @@ abstract class BaseMediaAdmin extends AbstractAdmin
 
         // if the context has only one provider, set it into the request
         // so the intermediate provider selection is skipped
-        if (1 == \count($providers) && null === $provider) {
+        if (1 === \count($providers) && null === $provider) {
             $provider = array_shift($providers)->getName();
             $this->getRequest()->query->set('provider', $provider);
         }
@@ -123,7 +125,7 @@ abstract class BaseMediaAdmin extends AbstractAdmin
             if (null !== $this->categoryManager && $categoryId = $this->getPersistentParameter('category')) {
                 $category = $this->categoryManager->find($categoryId);
 
-                if ($category && $category->getContext()->getId() == $context) {
+                if ($category && $category->getContext()->getId() === $context) {
                     $media->setCategory($category);
                 }
             }

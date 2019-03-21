@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -13,6 +15,7 @@ namespace Sonata\MediaBundle\Tests\Controller;
 
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use Prophecy\Argument\Token\TypeToken;
 use Sonata\AdminBundle\Admin\BreadcrumbsBuilderInterface;
 use Sonata\AdminBundle\Admin\Pool as AdminPool;
 use Sonata\AdminBundle\Datagrid\DatagridInterface;
@@ -42,7 +45,7 @@ class GalleryAdminControllerTest extends TestCase
     private $request;
     private $controller;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->container = $this->prophesize(ContainerInterface::class);
         $this->admin = $this->prophesize(BaseMediaAdmin::class);
@@ -54,19 +57,19 @@ class GalleryAdminControllerTest extends TestCase
         $this->controller->setContainer($this->container->reveal());
     }
 
-    public function testItIsInstantiable()
+    public function testItIsInstantiable(): void
     {
         $this->assertNotNull($this->controller);
     }
 
-    public function testListAction()
+    public function testListAction(): void
     {
         $datagrid = $this->prophesize(DatagridInterface::class);
         $form = $this->prophesize(Form::class);
         $formView = $this->prophesize(FormView::class);
         $pool = $this->prophesize(Pool::class);
 
-        $this->configureSetFormTheme($formView->reveal(), 'filterTheme');
+        $this->configureSetFormTheme($formView->reveal(), ['filterTheme']);
         $this->configureSetCsrfToken('sonata.batch');
         $this->configureRender('templateList', Argument::type('array'), 'renderResponse');
         $datagrid->setValue('context', null, 'context')->shouldBeCalled();
@@ -76,7 +79,7 @@ class GalleryAdminControllerTest extends TestCase
         $this->admin->setListMode('list')->shouldBeCalled();
         $this->admin->getDatagrid()->willReturn($datagrid->reveal());
         $this->admin->getPersistentParameter('context')->willReturn('context');
-        $this->admin->getFilterTheme()->willReturn('filterTheme');
+        $this->admin->getFilterTheme()->willReturn(['filterTheme']);
         $this->admin->getTemplate('list')->willReturn('templateList');
         $this->request->get('_list_mode')->willReturn('list');
         $this->container->get('sonata.media.pool')->willReturn($pool->reveal());
@@ -84,7 +87,7 @@ class GalleryAdminControllerTest extends TestCase
         $this->controller->listAction($this->request->reveal());
     }
 
-    private function configureCRUDController()
+    private function configureCRUDController(): void
     {
         $pool = $this->prophesize(AdminPool::class);
         $breadcrumbsBuilder = $this->prophesize(BreadcrumbsBuilderInterface::class);
@@ -105,7 +108,7 @@ class GalleryAdminControllerTest extends TestCase
         $this->admin->getCode()->willReturn('admin_code');
     }
 
-    private function configureGetCurrentRequest($request)
+    private function configureGetCurrentRequest(Request $request): void
     {
         $requestStack = $this->prophesize(RequestStack::class);
 
@@ -114,7 +117,7 @@ class GalleryAdminControllerTest extends TestCase
         $requestStack->getCurrentRequest()->willReturn($request);
     }
 
-    private function configureSetCsrfToken($intention)
+    private function configureSetCsrfToken(string $intention): void
     {
         $tokenManager = $this->prophesize(CsrfTokenManagerInterface::class);
         $token = $this->prophesize(CsrfToken::class);
@@ -125,7 +128,7 @@ class GalleryAdminControllerTest extends TestCase
         $this->container->get('security.csrf.token_manager')->willReturn($tokenManager->reveal());
     }
 
-    private function configureSetFormTheme($formView, $formTheme)
+    private function configureSetFormTheme(FormView $formView, array $formTheme): void
     {
         $twig = $this->prophesize(\Twig_Environment::class);
 
@@ -152,7 +155,7 @@ class GalleryAdminControllerTest extends TestCase
         $twigRenderer->setTheme($formView, $formTheme)->shouldBeCalled();
     }
 
-    private function configureRender($template, $data, $rendered)
+    private function configureRender(string $template, TypeToken $data, string $rendered): void
     {
         $templating = $this->prophesize(EngineInterface::class);
         $response = $this->prophesize(Response::class);

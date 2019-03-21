@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -158,7 +160,7 @@ abstract class Media implements MediaInterface
     // NEXT_MAJOR: Remove this method
     public function __set($property, $value)
     {
-        if ('category' == $property) {
+        if ('category' === $property) {
             if (null !== $value && !is_a($value, CategoryInterface::class)) {
                 throw new \InvalidArgumentException(
                     '$category should be an instance of Sonata\ClassificationBundle\Model\CategoryInterface or null'
@@ -172,7 +174,7 @@ abstract class Media implements MediaInterface
     // NEXT_MAJOR: Remove this method
     public function __call($method, $arguments)
     {
-        if ('setCategory' == $method) {
+        if ('setCategory' === $method) {
             $this->__set('category', current($arguments));
         }
     }
@@ -237,7 +239,7 @@ abstract class Media implements MediaInterface
     {
         $metadata = $this->getProviderMetadata();
 
-        return isset($metadata[$name]) ? $metadata[$name] : $default;
+        return $metadata[$name] ?? $default;
     }
 
     /**
@@ -569,8 +571,13 @@ abstract class Media implements MediaInterface
      */
     public function getExtension()
     {
+        $providerReference = $this->getProviderReference();
+        if (!$providerReference) {
+            return null;
+        }
+
         // strips off query strings or hashes, which are common in URIs remote references
-        return preg_replace('{(\?|#).*}', '', pathinfo($this->getProviderReference(), PATHINFO_EXTENSION));
+        return preg_replace('{(\?|#).*}', '', pathinfo($providerReference, PATHINFO_EXTENSION));
     }
 
     /**
@@ -652,7 +659,7 @@ abstract class Media implements MediaInterface
      */
     public function isStatusErroneous($context)
     {
-        if ($this->getBinaryContent() && self::STATUS_ERROR == $this->getProviderStatus()) {
+        if ($this->getBinaryContent() && self::STATUS_ERROR === $this->getProviderStatus()) {
             // NEXT_MAJOR: Restore type hint
             if (!$context instanceof ExecutionContextInterface) {
                 throw new \InvalidArgumentException('Argument 1 should be an instance of Symfony\Component\Validator\ExecutionContextInterface');

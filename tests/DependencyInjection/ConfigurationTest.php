@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -22,7 +24,7 @@ class ConfigurationTest extends TestCase
      */
     protected $config;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $configs = [
             'sonata_media' => [
@@ -35,14 +37,14 @@ class ConfigurationTest extends TestCase
         $this->config = $processor->processConfiguration($configuration, $configs);
     }
 
-    public function testProcess()
+    public function testProcess(): void
     {
         $this->assertArrayHasKey('resizers', $this->config);
         $this->assertArrayHasKey('default', $this->config['resizers']);
-        $this->assertEquals('sonata.media.resizer.simple', $this->config['resizers']['default']);
+        $this->assertSame('sonata.media.resizer.simple', $this->config['resizers']['default']);
 
         $this->assertArrayHasKey('adapters', $this->config);
         $this->assertArrayHasKey('default', $this->config['adapters']);
-        $this->assertEquals('sonata.media.adapter.image.gd', $this->config['adapters']['default']);
+        $this->assertSame('sonata.media.adapter.image.gd', $this->config['adapters']['default']);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -16,10 +18,10 @@ use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Form\Type\ModelListType;
 use Sonata\BlockBundle\Block\BlockContextInterface;
 use Sonata\BlockBundle\Block\Service\AbstractAdminBlockService;
+use Sonata\BlockBundle\Meta\Metadata;
 use Sonata\BlockBundle\Model\BlockInterface;
-use Sonata\CoreBundle\Form\Type\ImmutableArrayType;
-use Sonata\CoreBundle\Model\ManagerInterface;
-use Sonata\CoreBundle\Model\Metadata;
+use Sonata\Doctrine\Model\ManagerInterface;
+use Sonata\Form\Type\ImmutableArrayType;
 use Sonata\MediaBundle\Admin\BaseMediaAdmin;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Provider\Pool;
@@ -148,7 +150,7 @@ class MediaBlockService extends AbstractAdminBlockService
         if ($media instanceof MediaInterface) {
             $choices = $this->getFormatChoices($media);
 
-            if (!array_key_exists($blockContext->getSetting('format'), $choices)) {
+            if (!\array_key_exists($blockContext->getSetting('format'), $choices)) {
                 $blockContext->setSetting('format', key($choices));
             }
         }

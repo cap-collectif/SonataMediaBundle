@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -143,7 +145,7 @@ class SyncThumbsCommand extends BaseCommand
             //clear entity manager for saving memory
             $this->getMediaManager()->getObjectManager()->clear();
 
-            if ($batchesLimit > 0 && $batchCounter == $batchesLimit) {
+            if ($batchesLimit > 0 && $batchCounter === $batchesLimit) {
                 break;
             }
         } while (true);

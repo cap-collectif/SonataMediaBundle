@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -104,7 +106,7 @@ class Pixlr
      */
     public function editAction($id, $mode)
     {
-        if (!\in_array($mode, ['express', 'editor'])) {
+        if (!\in_array($mode, ['express', 'editor'], true)) {
             throw new NotFoundHttpException('Invalid mode');
         }
 
@@ -189,7 +191,7 @@ class Pixlr
             return false;
         }
 
-        return \in_array(strtolower($media->getExtension()), $this->validFormats);
+        return \in_array(strtolower($media->getExtension()), $this->validFormats, true);
     }
 
     /**
@@ -213,24 +215,15 @@ class Pixlr
         ]));
     }
 
-    /**
-     * @param MediaInterface $media
-     *
-     * @return string
-     */
-    private function generateHash(MediaInterface $media)
+    private function generateHash(MediaInterface $media): string
     {
         return sha1($media->getId().$media->getCreatedAt()->format('u').$this->secret);
     }
 
     /**
-     * @param string $id
-     *
      * @throws NotFoundHttpException
-     *
-     * @return MediaInterface
      */
-    private function getMedia($id)
+    private function getMedia(string $id): MediaInterface
     {
         $media = $this->mediaManager->findOneBy(['id' => $id]);
 
@@ -242,14 +235,11 @@ class Pixlr
     }
 
     /**
-     * @param string         $hash
-     * @param MediaInterface $media
-     *
      * @throws NotFoundHttpException
      */
-    private function checkMedia($hash, MediaInterface $media)
+    private function checkMedia(string $hash, MediaInterface $media)
     {
-        if ($hash != $this->generateHash($media)) {
+        if ($hash !== $this->generateHash($media)) {
             throw new NotFoundHttpException('Invalid hash');
         }
 
@@ -258,12 +248,7 @@ class Pixlr
         }
     }
 
-    /**
-     * @param array $parameters
-     *
-     * @return string
-     */
-    private function buildQuery(array $parameters = [])
+    private function buildQuery(array $parameters = []): string
     {
         $query = [];
         foreach ($parameters as $name => $value) {

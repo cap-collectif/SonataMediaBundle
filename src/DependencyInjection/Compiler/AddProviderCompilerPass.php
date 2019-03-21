@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -81,7 +83,7 @@ class AddProviderCompilerPass implements CompilerPassInterface
     {
         foreach ($container->findTaggedServiceIds('sonata.media.provider') as $id => $attributes) {
             foreach ($settings['providers'] as $name => $config) {
-                if ($config['service'] == $id) {
+                if ($config['service'] === $id) {
                     $definition = $container->getDefinition($id);
 
                     $definition
@@ -113,10 +115,11 @@ class AddProviderCompilerPass implements CompilerPassInterface
                 $definition = $container->getDefinition($id);
 
                 foreach ($context['formats'] as $format => $config) {
-                    $config['quality'] = isset($config['quality']) ? $config['quality'] : 80;
-                    $config['format'] = isset($config['format']) ? $config['format'] : 'jpg';
-                    $config['height'] = isset($config['height']) ? $config['height'] : false;
-                    $config['constraint'] = isset($config['constraint']) ? $config['constraint'] : true;
+                    $config['quality'] = $config['quality'] ?? 80;
+                    $config['format'] = $config['format'] ?? 'jpg';
+                    $config['height'] = $config['height'] ?? null;
+                    $config['constraint'] = $config['constraint'] ?? true;
+                    $config['resizer'] = $config['resizer'] ?? false;
 
                     $formatName = sprintf('%s_%s', $name, $format);
                     $definition->addMethodCall('addFormat', [$formatName, $config]);
@@ -125,12 +128,7 @@ class AddProviderCompilerPass implements CompilerPassInterface
         }
     }
 
-    /**
-     * @param ContainerBuilder $container
-     *
-     * @return array
-     */
-    private function getExtensionConfig(ContainerBuilder $container)
+    private function getExtensionConfig(ContainerBuilder $container): array
     {
         $config = $container->getExtensionConfig('sonata_media');
         $config = $container->getParameterBag()->resolveValue($config);

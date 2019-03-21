@@ -9,31 +9,29 @@ thumbnail of a flash video). And the media helper generates the media itself
 PHP Usage
 ---------
 
-Render the thumbnail:
+Render the thumbnail::
 
-.. code-block:: php
+    echo $view['sonata_media']->thumbnail($media, 'small');
 
-    <?php echo $view['sonata_media']->thumbnail($media, 'small') ?>
+    // or
 
-    <?php echo $view['sonata_media']->thumbnail($media, 'small', array(
-        'class' => 'myclass'
-    ) ?>
+    echo $view['sonata_media']->thumbnail($media, 'small', [
+        'class' => 'myclass',
+    ];
 
-Render the media:
+Render the media::
 
-.. code-block:: php
+    echo $view['sonata_media']->media($media, 'small');
 
-    <?php echo $view['sonata_media']->media($media, 'small') ?>
+    // or
 
-    <?php echo $view['sonata_media']->media($media, 'small', array(
-        'class' => 'myclass'
-    ) ?>
+    echo $view['sonata_media']->media($media, 'small', [
+        'class' => 'myclass',
+    ];
 
-Render the path:
+Render the path::
 
-.. code-block:: php
-
-    <?php echo $view['sonata_media']->path($media, 'small') ?>
+    echo $view['sonata_media']->path($media, 'small');
 
 Twig usage
 ----------
@@ -85,11 +83,27 @@ helper. The option expects either a string or an array of formats.
 
     {% media media, 'large' with {'srcset': ['small', 'big']} %}
 
+To render the image as ``<picture>`` element instead of ``<img>``, pass a ``picture`` key instead of ``srcset`` above:
+
+.. code-block:: jinja
+
+    {% media media, 'large' with {'picture': ['small', 'big']} %}
+
+Media queries for ``<source>`` tags will default to a ``max-width`` equal to the image size.
+If you need to specify media queries explicitly, do so with an object as follows:
+
+.. code-block:: jinja
+
+    {% media media, 'large' with {'srcset': {'(max-width: 500px)': 'small', '(max-width: 1200px)': 'big'}} %}
+
+The format parameter (``'large'`` above) determines which size is going to be rendered as ``<img>`` inside the ``<picture>`` element.
 
 Thumbnails for files
 --------------------
 
-The ``sonata.media.provider.file`` provider does not generate thumbnails. This provider tries to display a default thumbnail by context and format.
+The ``sonata.media.provider.file`` provider does not generate thumbnails.
+This provider tries to display a default thumbnail by context and format.
 
-The default thumbnail must be put in the ``web/uploads/media/media_bundle/images/<context-name>_<format-name>/`` directory (be sure to replace ``<context-name>`` and ``<format-name>``).
+The default thumbnail must be put in the ``web/uploads/media/media_bundle/images/<context-name>_<format-name>/``
+directory (be sure to replace ``<context-name>`` and ``<format-name>``).
 The file must be called ``file.png`` and must comply with the size configured for this format.

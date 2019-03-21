@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -24,7 +26,7 @@ use Sonata\MediaBundle\Resizer\SimpleResizer;
 
 class SimpleResizerTest extends TestCase
 {
-    public function testResizeWithNoWidth()
+    public function testResizeWithNoWidth(): void
     {
         $this->expectException(\RuntimeException::class);
 
@@ -37,7 +39,7 @@ class SimpleResizerTest extends TestCase
         $resizer->resize($media, $file, $file, 'bar', []);
     }
 
-    public function testResize()
+    public function testResize(): void
     {
         $image = $this->createMock(ImageInterface::class);
         $image->expects($this->once())->method('thumbnail')->will($this->returnValue($image));
@@ -65,7 +67,7 @@ class SimpleResizerTest extends TestCase
     /**
      * @dataProvider getBoxSettings
      */
-    public function testGetBox($mode, $settings, Box $mediaSize, Box $result)
+    public function testGetBox($mode, $settings, Box $mediaSize, Box $result): void
     {
         $adapter = $this->createMock(ImagineInterface::class);
 
@@ -90,10 +92,11 @@ class SimpleResizerTest extends TestCase
             ['inset', ['width' => 90, 'height' => 90], new Box(100, 120), new Box(75, 90)],
             ['inset', ['width' => 90, 'height' => 90], new Box(50, 50), new Box(90, 90)],
             ['inset', ['width' => 90, 'height' => null], new Box(50, 50), new Box(90, 90)],
-            ['inset', ['width' => 90, 'height' => null], new Box(567, 200), new Box(88, 31)],
+            ['inset', ['width' => 90, 'height' => null], new Box(567, 200), new Box(90, 32)],
             ['inset', ['width' => 100, 'height' => 100], new Box(567, 200), new Box(100, 35)],
 
-            ['outbound', ['width' => 90, 'height' => 90], new Box(100, 120), new Box(90, 108)],
+            ['outbound', ['width' => 90, 'height' => 90], new Box(100, 120), new Box(90, 90)],
+            ['outbound', ['width' => 90, 'height' => 90], new Box(120, 100), new Box(90, 90)],
             ['outbound', ['width' => 90, 'height' => 90], new Box(50, 50), new Box(90, 90)],
             ['outbound', ['width' => 90, 'height' => null], new Box(50, 50), new Box(90, 90)],
             ['outbound', ['width' => 90, 'height' => null], new Box(567, 50), new Box(90, 8)],

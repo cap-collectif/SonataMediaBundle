@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -13,7 +15,6 @@ namespace Sonata\MediaBundle\Provider;
 
 use Gaufrette\Filesystem;
 use Sonata\AdminBundle\Form\FormMapper;
-use Sonata\CoreBundle\Model\Metadata;
 use Sonata\CoreBundle\Validator\ErrorElement;
 use Sonata\MediaBundle\CDN\CDNInterface;
 use Sonata\MediaBundle\Extra\ApiMediaFile;
@@ -66,7 +67,12 @@ class FileProvider extends BaseProvider
      */
     public function getProviderMetadata()
     {
-        return new Metadata($this->getName(), $this->getName().'.description', false, 'SonataMediaBundle', ['class' => 'fa fa-file-text-o']);
+        return new Metadata($this->getName(),
+            $this->getName().'.description',
+            null,
+            'SonataMediaBundle',
+            ['class' => 'fa fa-file-text-o']
+        );
     }
 
     /**
@@ -136,7 +142,7 @@ class FileProvider extends BaseProvider
      */
     public function buildMediaType(FormBuilder $formBuilder)
     {
-        if ('api' == $formBuilder->getOption('context')) {
+        if ('api' === $formBuilder->getOption('context')) {
             $formBuilder->add('binaryContent', FileType::class);
             $formBuilder->add('contentType');
         } else {
@@ -262,11 +268,11 @@ class FileProvider extends BaseProvider
             'Content-Disposition' => sprintf('attachment; filename="%s"', $media->getMetadataValue('filename')),
         ], $headers);
 
-        if (!\in_array($mode, ['http', 'X-Sendfile', 'X-Accel-Redirect'])) {
+        if (!\in_array($mode, ['http', 'X-Sendfile', 'X-Accel-Redirect'], true)) {
             throw new \RuntimeException('Invalid mode provided');
         }
 
-        if ('http' == $mode) {
+        if ('http' === $mode) {
             if (MediaProviderInterface::FORMAT_REFERENCE === $format) {
                 $file = $this->getReferenceFile($media);
             } else {
@@ -307,21 +313,21 @@ class FileProvider extends BaseProvider
             throw new \RuntimeException(sprintf('Invalid binary content type: %s', \get_class($media->getBinaryContent())));
         }
 
-        if ($media->getBinaryContent() instanceof UploadedFile && 0 === $media->getBinaryContent()->getClientSize()) {
+        if ($media->getBinaryContent() instanceof UploadedFile && 0 === ($media->getBinaryContent()->getClientSize() ?: 0)) {
             $errorElement
                ->with('binaryContent')
                    ->addViolation('The file is too big, max size: '.ini_get('upload_max_filesize'))
                ->end();
         }
 
-        if (!\in_array(strtolower(pathinfo($fileName, PATHINFO_EXTENSION)), $this->allowedExtensions)) {
+        if (!\in_array(strtolower(pathinfo($fileName, PATHINFO_EXTENSION)), $this->allowedExtensions, true)) {
             $errorElement
                 ->with('binaryContent')
                 ->addViolation('Invalid extensions')
                 ->end();
         }
 
-        if ('' != $media->getBinaryContent()->getFilename() && !\in_array($media->getBinaryContent()->getMimeType(), $this->allowedMimeTypes)) {
+        if ('' !== $media->getBinaryContent()->getFilename() && !\in_array($media->getBinaryContent()->getMimeType(), $this->allowedMimeTypes, true)) {
             $errorElement
                 ->with('binaryContent')
                     ->addViolation('Invalid mime type : %type%', ['%type%' => $media->getBinaryContent()->getMimeType()])
@@ -448,7 +454,7 @@ class FileProvider extends BaseProvider
      */
     protected function generateMediaUniqId(MediaInterface $media)
     {
-        return sha1($media->getName().uniqid().rand(11111, 99999));
+        return sha1($media->getName().uniqid().random_int(11111, 99999));
     }
 
     /**

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -13,6 +15,7 @@ namespace Sonata\MediaBundle\Thumbnail;
 
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Provider\MediaProviderInterface;
+use Sonata\MediaBundle\Resizer\ResizerInterface;
 
 class FormatThumbnail implements ThumbnailInterface
 {
@@ -22,11 +25,42 @@ class FormatThumbnail implements ThumbnailInterface
     private $defaultFormat;
 
     /**
+     * @var ResizerInterface[]
+     */
+    private $resizers = [];
+
+    /**
      * @param string $defaultFormat
      */
     public function __construct($defaultFormat)
     {
         $this->defaultFormat = $defaultFormat;
+    }
+
+    /**
+     * @param string $id
+     */
+    public function addResizer($id, ResizerInterface $resizer)
+    {
+        if (!isset($this->resizers[$id])) {
+            $this->resizers[$id] = $resizer;
+        }
+    }
+
+    /**
+     * @param string $id
+     *
+     * @throws \Exception
+     *
+     * @return ResizerInterface
+     */
+    public function getResizer($id)
+    {
+        if (!isset($this->resizers[$id])) {
+            throw new \LogicException(sprintf('Resizer with id: "%s" is not attached.', $id));
+        }
+
+        return $this->resizers[$id];
     }
 
     /**
@@ -77,9 +111,12 @@ class FormatThumbnail implements ThumbnailInterface
         }
 
         foreach ($provider->getFormats() as $format => $settings) {
-            if (substr($format, 0, \strlen($media->getContext())) == $media->getContext() ||
+            if (substr($format, 0, \strlen($media->getContext())) === $media->getContext() ||
                 MediaProviderInterface::FORMAT_ADMIN === $format) {
-                $provider->getResizer()->resize(
+                $resizer = (isset($settings['resizer']) && ($settings['resizer'])) ?
+                    $this->getResizer($settings['resizer']) :
+                    $provider->getResizer();
+                $resizer->resize(
                     $media,
                     $referenceFile,
                     $provider->getFilesystem()->get($provider->generatePrivateUrl($media, $format), true),

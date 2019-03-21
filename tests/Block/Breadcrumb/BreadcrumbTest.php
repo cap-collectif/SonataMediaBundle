@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -14,19 +16,14 @@ namespace Sonata\MediaBundle\Tests\Block\Breadcrumb;
 use Knp\Menu\FactoryInterface;
 use Knp\Menu\Provider\MenuProviderInterface;
 use Sonata\BlockBundle\Test\AbstractBlockServiceTestCase;
-use Sonata\MediaBundle\Block\Breadcrumb\BaseGalleryBreadcrumbBlockService;
 use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
-
-class BreadcrumbGalleryBlockService_Test extends BaseGalleryBreadcrumbBlockService
-{
-}
 
 /**
  * @author Sylvain Deloux <sylvain.deloux@ekino.com>
  */
 class BreadcrumbTest extends AbstractBlockServiceTestCase
 {
-    public function testBlockService()
+    public function testBlockService(): void
     {
         $blockService = new BreadcrumbGalleryBlockService_Test(
             'context',

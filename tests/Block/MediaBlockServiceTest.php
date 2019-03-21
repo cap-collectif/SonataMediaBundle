@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -11,6 +13,7 @@
 
 namespace Sonata\MediaBundle\Tests\Block;
 
+use Prophecy\Prophecy\ObjectProphecy;
 use Sonata\BlockBundle\Block\BlockContext;
 use Sonata\BlockBundle\Model\Block;
 use Sonata\BlockBundle\Test\AbstractBlockServiceTestCase;
@@ -27,7 +30,7 @@ class MediaBlockServiceTest extends AbstractBlockServiceTestCase
     private $galleryManager;
     private $blockService;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -42,7 +45,7 @@ class MediaBlockServiceTest extends AbstractBlockServiceTestCase
         );
     }
 
-    public function testExecute()
+    public function testExecute(): void
     {
         $block = $this->prophesize(Block::class);
         $media = $this->prophesize(MediaInterface::class);
@@ -65,7 +68,7 @@ class MediaBlockServiceTest extends AbstractBlockServiceTestCase
         $this->assertSame($block->reveal(), $this->templating->parameters['block']);
     }
 
-    public function testDefaultSettings()
+    public function testDefaultSettings(): void
     {
         $blockContext = $this->getBlockContext($this->blockService);
 
@@ -86,7 +89,7 @@ class MediaBlockServiceTest extends AbstractBlockServiceTestCase
         ], $blockContext);
     }
 
-    private function configureGetFormatChoices($media, $choices)
+    private function configureGetFormatChoices(ObjectProphecy $media, array $choices): void
     {
         $mediaAdmin = $this->prophesize(BaseMediaAdmin::class);
         $pool = $this->prophesize(Pool::class);

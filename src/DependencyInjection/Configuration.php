@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -25,15 +27,21 @@ class Configuration implements ConfigurationInterface
     /**
      * NEXT_MAJOR: make constant protected/private.
      */
-    const DB_DRIVERS = ['doctrine_orm', 'doctrine_mongodb', 'doctrine_phpcr', 'no_driver'];
+    public const DB_DRIVERS = ['doctrine_orm', 'doctrine_mongodb', 'doctrine_phpcr', 'no_driver'];
 
     /**
      * {@inheritdoc}
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
-        $node = $treeBuilder->root('sonata_media');
+        $treeBuilder = new TreeBuilder('sonata_media');
+
+        // Keep compatibility with symfony/config < 4.2
+        if (!method_exists($treeBuilder, 'getRootNode')) {
+            $node = $treeBuilder->root('sonata_media');
+        } else {
+            $node = $treeBuilder->getRootNode();
+        }
 
         $node
             ->children()
@@ -58,7 +66,7 @@ class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('width')->defaultValue(200)->end()
-                        ->scalarNode('height')->defaultValue(false)->end()
+                        ->scalarNode('height')->defaultValue(null)->end()
                         ->scalarNode('quality')->defaultValue(90)->end()
                         ->scalarNode('format')->defaultValue('jpg')->end()
                         ->scalarNode('constraint')->defaultValue(true)->end()
@@ -80,10 +88,7 @@ class Configuration implements ConfigurationInterface
         return $treeBuilder;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
-    private function addContextsSection(ArrayNodeDefinition $node)
+    private function addContextsSection(ArrayNodeDefinition $node): void
     {
         $node
             ->children()
@@ -107,11 +112,18 @@ class Configuration implements ConfigurationInterface
                                 ->useAttributeAsKey('id')
                                 ->prototype('array')
                                     ->children()
-                                        ->scalarNode('width')->defaultValue(false)->end()
-                                        ->scalarNode('height')->defaultValue(false)->end()
+                                        ->scalarNode('width')->defaultValue(null)->end()
+                                        ->scalarNode('height')->defaultValue(null)->end()
                                         ->scalarNode('quality')->defaultValue(80)->end()
                                         ->scalarNode('format')->defaultValue('jpg')->end()
                                         ->scalarNode('constraint')->defaultValue(true)->end()
+                                        ->scalarNode('resizer')->defaultNull()->end()
+                                        ->arrayNode('resizer_options')
+                                            ->info('options directly passed to selected resizer. e.g. {use_crop: true, crop_gravity: center}')
+                                            ->defaultValue([])
+                                            ->useAttributeAsKey('name')
+                                            ->prototype('scalar')
+                                        ->end()
                                     ->end()
                                 ->end()
                             ->end()
@@ -122,10 +134,7 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
-    private function addCdnSection(ArrayNodeDefinition $node)
+    private function addCdnSection(ArrayNodeDefinition $node): void
     {
         $node
             ->children()
@@ -174,10 +183,7 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
-    private function addFilesystemSection(ArrayNodeDefinition $node)
+    private function addFilesystemSection(ArrayNodeDefinition $node): void
     {
         $node
             ->children()
@@ -298,10 +304,7 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
-    private function addProvidersSection(ArrayNodeDefinition $node)
+    private function addProvidersSection(ArrayNodeDefinition $node): void
     {
         $node
             ->children()
@@ -409,10 +412,7 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
-    private function addExtraSection(ArrayNodeDefinition $node)
+    private function addExtraSection(ArrayNodeDefinition $node): void
     {
         $node
             ->children()
@@ -421,7 +421,7 @@ class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('enabled')->defaultValue(false)->end()
-                        ->scalarNode('secret')->defaultValue(sha1(uniqid(rand(1, 9999), true)))->end()
+                        ->scalarNode('secret')->defaultValue(sha1(uniqid((string) random_int(1, 9999), true)))->end()
                         ->scalarNode('referrer')->defaultValue('Sonata Media')->end()
                     ->end()
                 ->end()
@@ -429,10 +429,7 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
-    private function addModelSection(ArrayNodeDefinition $node)
+    private function addModelSection(ArrayNodeDefinition $node): void
     {
         $node
             ->children()
@@ -449,10 +446,7 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
-    private function addBuzzSection(ArrayNodeDefinition $node)
+    private function addBuzzSection(ArrayNodeDefinition $node): void
     {
         $node
             ->children()
@@ -475,10 +469,7 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
-    private function addResizerSection(ArrayNodeDefinition $node)
+    private function addResizerSection(ArrayNodeDefinition $node): void
     {
         $node
             ->children()
@@ -509,10 +500,7 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
-    private function addAdapterSection(ArrayNodeDefinition $node)
+    private function addAdapterSection(ArrayNodeDefinition $node): void
     {
         $node
             ->children()

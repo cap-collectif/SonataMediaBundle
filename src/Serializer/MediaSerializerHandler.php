@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -11,7 +13,7 @@
 
 namespace Sonata\MediaBundle\Serializer;
 
-use Sonata\CoreBundle\Serializer\BaseSerializerHandler;
+use Sonata\Serializer\BaseSerializerHandler;
 
 /**
  * @author Sylvain Deloux <sylvain.deloux@ekino.com>

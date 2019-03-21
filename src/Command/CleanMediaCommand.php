@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -90,7 +92,7 @@ class CleanMediaCommand extends ContainerAwareCommand
     /**
      * @return string[]
      */
-    private function getProviders()
+    private function getProviders(): array
     {
         if (!$this->providers) {
             $this->providers = [];
@@ -107,20 +109,14 @@ class CleanMediaCommand extends ContainerAwareCommand
         return $this->providers;
     }
 
-    /**
-     * @param $filename
-     * @param $context
-     *
-     * @return bool
-     */
-    private function mediaExists($filename, $context = null)
+    private function mediaExists(string $filename, string $context = null): bool
     {
         $mediaManager = $this->getContainer()->get('sonata.media.manager.media');
 
         $fileParts = explode('_', $filename);
 
-        if (\count($fileParts) > 1 && 'thumb' == $fileParts[0]) {
-            return null != $mediaManager->findOneBy([
+        if (\count($fileParts) > 1 && 'thumb' === $fileParts[0]) {
+            return null !== $mediaManager->findOneBy([
                 'id' => $fileParts[1],
                 'context' => $context,
             ]);

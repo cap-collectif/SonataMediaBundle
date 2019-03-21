@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -79,26 +81,5 @@ abstract class BaseGallery extends Gallery
         $this->updatedAt = new \DateTime();
 
         $this->reorderGalleryHasMedia();
-    }
-
-    /**
-     * Reorders $galleryHasMedia items based on their position.
-     */
-    public function reorderGalleryHasMedia()
-    {
-        if ($this->getGalleryHasMedias() && $this->getGalleryHasMedias() instanceof \IteratorAggregate) {
-            // reorder
-            $iterator = $this->getGalleryHasMedias()->getIterator();
-
-            $iterator->uasort(function ($a, $b) {
-                if ($a->getPosition() === $b->getPosition()) {
-                    return 0;
-                }
-
-                return $a->getPosition() > $b->getPosition() ? 1 : -1;
-            });
-
-            $this->setGalleryHasMedias($iterator);
-        }
     }
 }

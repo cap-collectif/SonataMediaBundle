@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Sonata Project package.
  *
@@ -11,7 +13,6 @@
 
 namespace Sonata\MediaBundle\Provider;
 
-use Sonata\CoreBundle\Model\Metadata;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -70,14 +71,14 @@ class DailyMotionProvider extends BaseVideoProvider
             'highlight' => null,
         ];
 
-        $player_parameters = array_merge($defaults, isset($options['player_parameters']) ? $options['player_parameters'] : []);
+        $player_parameters = array_merge($defaults, $options['player_parameters'] ?? []);
 
         $box = $this->getBoxHelperProperties($media, $format, $options);
 
         $params = [
             'player_parameters' => http_build_query($player_parameters),
-            'allowFullScreen' => isset($options['allowFullScreen']) ? $options['allowFullScreen'] : 'true',
-            'allowScriptAccess' => isset($options['allowScriptAccess']) ? $options['allowScriptAccess'] : 'always',
+            'allowFullScreen' => $options['allowFullScreen'] ?? 'true',
+            'allowScriptAccess' => $options['allowScriptAccess'] ?? 'always',
             'width' => $box->getWidth(),
             'height' => $box->getHeight(),
         ];
