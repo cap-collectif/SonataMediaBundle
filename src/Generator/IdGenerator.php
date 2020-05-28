@@ -42,8 +42,8 @@ class IdGenerator implements GeneratorInterface
 
     public function generatePath(MediaInterface $media)
     {
-        $rep_first_level = (int) ($media->getId() / $this->firstLevel);
-        $rep_second_level = (int) (($media->getId() - ($rep_first_level * $this->firstLevel)) / $this->secondLevel);
+        $rep_first_level = 0;
+        $rep_second_level = 0;
 
         return sprintf('%s/%04s/%02s', $media->getContext(), $rep_first_level + 1, $rep_second_level + 1);
     }
