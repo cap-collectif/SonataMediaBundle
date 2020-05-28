@@ -25,6 +25,9 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
  *
  * Useful if you have existing media content and added new formats.
  */
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class RefreshMetadataCommand extends BaseCommand
 {
     /**
@@ -49,11 +52,12 @@ class RefreshMetadataCommand extends BaseCommand
     {
         $this->setName('sonata:media:refresh-metadata')
             ->setDescription('Refresh meta information')
-            ->setDefinition([
+            ->setDefinition(
+                [
                 new InputArgument('providerName', InputArgument::OPTIONAL, 'The provider'),
                 new InputArgument('context', InputArgument::OPTIONAL, 'The context'),
             ]
-        );
+            );
     }
 
     /**
@@ -102,6 +106,8 @@ class RefreshMetadataCommand extends BaseCommand
         }
 
         $this->log('Done!');
+
+        return 0;
     }
 
     /**
@@ -116,10 +122,7 @@ class RefreshMetadataCommand extends BaseCommand
         }
     }
 
-    /**
-     * @return MediaProviderInterface
-     */
-    private function getProvider()
+    private function getProvider(): MediaProviderInterface
     {
         $providerName = $this->input->getArgument('providerName');
 
@@ -134,10 +137,7 @@ class RefreshMetadataCommand extends BaseCommand
         return $this->getMediaPool()->getProvider($providerName);
     }
 
-    /**
-     * @return string
-     */
-    private function getContext()
+    private function getContext(): string
     {
         $context = $this->input->getArgument('context');
 
@@ -152,10 +152,7 @@ class RefreshMetadataCommand extends BaseCommand
         return $context;
     }
 
-    /**
-     * @return QuestionHelper
-     */
-    private function getQuestionHelper()
+    private function getQuestionHelper(): QuestionHelper
     {
         return $this->getHelper('question');
     }

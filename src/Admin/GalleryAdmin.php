@@ -17,10 +17,13 @@ use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
-use Sonata\CoreBundle\Form\Type\CollectionType;
+use Sonata\Form\Type\CollectionType;
 use Sonata\MediaBundle\Provider\Pool;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class GalleryAdmin extends AbstractAdmin
 {
     /**
@@ -34,7 +37,6 @@ class GalleryAdmin extends AbstractAdmin
      * @param string $code
      * @param string $class
      * @param string $baseControllerName
-     * @param Pool   $pool
      */
     public function __construct($code, $class, $baseControllerName, Pool $pool)
     {
@@ -51,6 +53,14 @@ class GalleryAdmin extends AbstractAdmin
         $parameters = $this->getPersistentParameters();
 
         $gallery->setContext($parameters['context']);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function postUpdate($gallery)
+    {
+        $gallery->reorderGalleryHasMedia();
     }
 
     /**
@@ -112,7 +122,10 @@ class GalleryAdmin extends AbstractAdmin
 
         $formMapper
             ->with('Options')
-                ->add('context', ChoiceType::class, ['choices' => $contexts])
+                ->add('context', ChoiceType::class, [
+                    'choices' => $contexts,
+                    'choice_translation_domain' => 'SonataMediaBundle',
+                ])
                 ->add('enabled', null, ['required' => false])
                 ->add('name')
                 ->ifTrue($formats)

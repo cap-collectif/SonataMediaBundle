@@ -15,23 +15,16 @@ namespace Sonata\MediaBundle\Tests\Block;
 
 use Sonata\BlockBundle\Block\BlockContext;
 use Sonata\BlockBundle\Model\Block;
-use Sonata\BlockBundle\Model\BlockInterface;
-use Sonata\BlockBundle\Test\AbstractBlockServiceTestCase;
+use Sonata\BlockBundle\Test\BlockServiceTestCase;
 use Sonata\DatagridBundle\Pager\PagerInterface;
 use Sonata\MediaBundle\Block\GalleryListBlockService;
 use Sonata\MediaBundle\Model\GalleryManagerInterface;
 use Sonata\MediaBundle\Provider\Pool;
 
-class GalleryListBlockServiceTest extends AbstractBlockServiceTestCase
+class GalleryListBlockServiceTest extends BlockServiceTestCase
 {
-    /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|GalleryManagerInterface
-     */
     protected $galleryManager;
 
-    /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|Pool
-     */
     protected $pool;
 
     protected function setUp(): void
@@ -45,33 +38,39 @@ class GalleryListBlockServiceTest extends AbstractBlockServiceTestCase
     public function testExecute(): void
     {
         $pager = $this->createMock(PagerInterface::class);
-        $this->galleryManager->expects($this->once())->method('getPager')->will($this->returnValue($pager));
+        $this->galleryManager->expects($this->once())->method('getPager')->willReturn($pager);
 
         $block = new Block();
 
-        $blockContext = new BlockContext($block, [
+        $settings = [
             'number' => 15,
             'mode' => 'public',
             'order' => 'createdAt',
             'sort' => 'desc',
             'context' => false,
             'template' => '@SonataMedia/Block/block_gallery_list.html.twig',
-        ]);
+        ];
 
-        $blockService = new GalleryListBlockService('block.service', $this->templating, $this->galleryManager, $this->pool);
+        $blockContext = new BlockContext($block, $settings);
+
+        $blockService = new GalleryListBlockService($this->twig, null, $this->galleryManager, $this->pool);
+
+        $this->twig
+            ->expects($this->once())
+            ->method('render')
+            ->with('@SonataMedia/Block/block_gallery_list.html.twig', [
+                'context' => $blockContext,
+                'pager' => $pager,
+                'block' => $block,
+                'settings' => $settings,
+            ]);
+
         $blockService->execute($blockContext);
-
-        $this->assertSame('@SonataMedia/Block/block_gallery_list.html.twig', $this->templating->view);
-
-        $this->assertSame($blockContext, $this->templating->parameters['context']);
-        $this->assertInternalType('array', $this->templating->parameters['settings']);
-        $this->assertInstanceOf(BlockInterface::class, $this->templating->parameters['block']);
-        $this->assertSame($pager, $this->templating->parameters['pager']);
     }
 
     public function testDefaultSettings(): void
     {
-        $blockService = new GalleryListBlockService('block.service', $this->templating, $this->galleryManager, $this->pool);
+        $blockService = new GalleryListBlockService($this->twig, null, $this->galleryManager, $this->pool);
         $blockContext = $this->getBlockContext($blockService);
 
         $this->assertSettings([

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Sonata\MediaBundle\Model;
 
-abstract class GalleryItem implements GalleryItemInterface
+abstract class GalleryHasMedia implements GalleryHasMediaInterface
 {
     /**
      * @var MediaInterface|null
@@ -56,7 +56,7 @@ abstract class GalleryItem implements GalleryItemInterface
     /**
      * {@inheritdoc}
      */
-    public function setCreatedAt(\DateTime $createdAt = null): void
+    public function setCreatedAt(?\DateTime $createdAt = null)
     {
         $this->createdAt = $createdAt;
     }
@@ -72,7 +72,7 @@ abstract class GalleryItem implements GalleryItemInterface
     /**
      * {@inheritdoc}
      */
-    public function setEnabled($enabled): void
+    public function setEnabled($enabled)
     {
         $this->enabled = $enabled;
     }
@@ -88,7 +88,7 @@ abstract class GalleryItem implements GalleryItemInterface
     /**
      * {@inheritdoc}
      */
-    public function setGallery(GalleryInterface $gallery = null): void
+    public function setGallery(?GalleryInterface $gallery = null)
     {
         $this->gallery = $gallery;
     }
@@ -104,7 +104,7 @@ abstract class GalleryItem implements GalleryItemInterface
     /**
      * {@inheritdoc}
      */
-    public function setMedia(MediaInterface $media = null): void
+    public function setMedia(?MediaInterface $media = null)
     {
         $this->media = $media;
     }
@@ -120,7 +120,7 @@ abstract class GalleryItem implements GalleryItemInterface
     /**
      * {@inheritdoc}
      */
-    public function setPosition($position): void
+    public function setPosition($position)
     {
         $this->position = $position;
     }
@@ -136,7 +136,7 @@ abstract class GalleryItem implements GalleryItemInterface
     /**
      * {@inheritdoc}
      */
-    public function setUpdatedAt(\DateTime $updatedAt = null): void
+    public function setUpdatedAt(?\DateTime $updatedAt = null)
     {
         $this->updatedAt = $updatedAt;
     }

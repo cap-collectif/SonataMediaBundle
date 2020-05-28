@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Sonata\MediaBundle\CDN;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class Server implements CDNInterface
 {
     /**

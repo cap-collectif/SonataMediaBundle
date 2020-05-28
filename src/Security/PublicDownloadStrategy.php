@@ -17,6 +17,9 @@ use Sonata\MediaBundle\Model\MediaInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Translation\TranslatorInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class PublicDownloadStrategy implements DownloadStrategyInterface
 {
     /**
@@ -24,9 +27,6 @@ class PublicDownloadStrategy implements DownloadStrategyInterface
      */
     protected $translator;
 
-    /**
-     * @param TranslatorInterface $translator
-     */
     public function __construct(TranslatorInterface $translator)
     {
         $this->translator = $translator;

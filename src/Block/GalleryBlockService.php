@@ -18,11 +18,11 @@ use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Form\Type\ModelListType;
 use Sonata\BlockBundle\Block\BlockContextInterface;
-use Sonata\BlockBundle\Block\Service\AbstractAdminBlockService;
+use Sonata\BlockBundle\Block\Service\AbstractBlockService;
+use Sonata\BlockBundle\Meta\Metadata;
 use Sonata\BlockBundle\Model\BlockInterface;
-use Sonata\CoreBundle\Form\Type\ImmutableArrayType;
-use Sonata\CoreBundle\Model\ManagerInterface;
-use Sonata\CoreBundle\Model\Metadata;
+use Sonata\Doctrine\Model\ManagerInterface;
+use Sonata\Form\Type\ImmutableArrayType;
 use Sonata\MediaBundle\Model\GalleryInterface;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Provider\Pool;
@@ -34,11 +34,14 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Templating\EngineInterface;
+use Twig\Environment;
 
 /**
+ * @final since sonata-project/media-bundle 3.21.0
+ *
  * @author Thomas Rabaix <thomas.rabaix@sonata-project.org>
  */
-class GalleryBlockService extends AbstractAdminBlockService
+class GalleryBlockService extends AbstractBlockService
 {
     /**
      * @var ManagerInterface
@@ -51,14 +54,18 @@ class GalleryBlockService extends AbstractAdminBlockService
     protected $galleryManager;
 
     /**
-     * @param string             $name
-     * @param EngineInterface    $templating
-     * @param ContainerInterface $container
-     * @param ManagerInterface   $galleryManager
+     * @var ContainerInterface
      */
-    public function __construct($name, EngineInterface $templating, ContainerInterface $container, ManagerInterface $galleryManager)
+    private $container;
+
+    /**
+     * NEXT_MAJOR: Remove `$templating` argument.
+     *
+     * @param Environment|string $twigOrName
+     */
+    public function __construct($twigOrName, ?EngineInterface $templating, ContainerInterface $container, ManagerInterface $galleryManager)
     {
-        parent::__construct($name, $templating);
+        parent::__construct($twigOrName, $templating);
 
         $this->galleryManager = $galleryManager;
         $this->container = $container;
@@ -187,7 +194,7 @@ class GalleryBlockService extends AbstractAdminBlockService
     /**
      * {@inheritdoc}
      */
-    public function execute(BlockContextInterface $blockContext, Response $response = null)
+    public function execute(BlockContextInterface $blockContext, ?Response $response = null)
     {
         $gallery = $blockContext->getBlock()->getSetting('galleryId');
 
@@ -239,12 +246,7 @@ class GalleryBlockService extends AbstractAdminBlockService
         ]);
     }
 
-    /**
-     * @param GalleryInterface $gallery
-     *
-     * @return array
-     */
-    private function buildElements(GalleryInterface $gallery)
+    private function buildElements(GalleryInterface $gallery): array
     {
         $elements = [];
         foreach ($gallery->getGalleryItems() as $galleryItem) {
@@ -254,7 +256,7 @@ class GalleryBlockService extends AbstractAdminBlockService
 
             $type = $this->getMediaType($galleryItem->getMedia());
 
-            if (!$type) {
+            if (null === $type) {
                 continue;
             }
 
@@ -269,19 +271,15 @@ class GalleryBlockService extends AbstractAdminBlockService
         return $elements;
     }
 
-    /**
-     * @param MediaInterface $media
-     *
-     * @return false|string
-     */
-    private function getMediaType(MediaInterface $media)
+    private function getMediaType(MediaInterface $media): ?string
     {
-        if ('video/x-flv' == $media->getContentType()) {
+        if ('video/x-flv' === $media->getContentType()) {
             return 'video';
-        } elseif ('image' == substr($media->getContentType(), 0, 5)) {
+        }
+        if ('image' === substr($media->getContentType(), 0, 5)) {
             return 'image';
         }
 
-        return false;
+        return null;
     }
 }

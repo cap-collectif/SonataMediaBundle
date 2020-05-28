@@ -14,15 +14,26 @@ declare(strict_types=1);
 namespace Sonata\MediaBundle\Security;
 
 use Sonata\MediaBundle\Model\MediaInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Translation\TranslatorInterface;
 
 /**
+ * @final since sonata-project/media-bundle 3.21.0
+ *
  * @author Ahmet Akbana <ahmetakbana@gmail.com>
  */
 class SessionDownloadStrategy implements DownloadStrategyInterface
 {
+    /**
+     * @var ContainerInterface
+     *
+     * @deprecated since sonata-project/media-bundle 3.1, will be removed in 4.0.
+     * NEXT_MAJOR : remove this property
+     */
+    protected $container;
+
     /**
      * @var TranslatorInterface
      */
@@ -44,14 +55,30 @@ class SessionDownloadStrategy implements DownloadStrategyInterface
     private $session;
 
     /**
-     * @param TranslatorInterface $translator
-     * @param SessionInterface    $session
-     * @param int                 $times
+     * @param ContainerInterface|SessionInterface $session
+     * @param int                                 $times
      */
-    public function __construct(TranslatorInterface $translator, SessionInterface $session, $times)
+    public function __construct(TranslatorInterface $translator, $session, $times)
     {
+        // NEXT_MAJOR : remove this block and set session from parameter.
+        if ($session instanceof ContainerInterface) {
+            @trigger_error(
+                'Using an instance of Symfony\Component\DependencyInjection\ContainerInterface is deprecated since
+                version 3.1 and will be removed in 4.0.
+                Use Symfony\Component\HttpFoundation\Session\SessionInterface instead.',
+                E_USER_DEPRECATED
+            );
+
+            $this->session = $session->get('session');
+        } elseif ($session instanceof SessionInterface) {
+            $this->session = $session;
+        } else {
+            throw new \InvalidArgumentException(
+                '$session should be an instance of Symfony\Component\HttpFoundation\Session\SessionInterface'
+            );
+        }
+
         $this->times = $times;
-        $this->session = $session;
         $this->translator = $translator;
     }
 

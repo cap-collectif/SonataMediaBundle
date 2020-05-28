@@ -2,6 +2,260 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.24.0](https://github.com/sonata-project/SonataMediaBundle/compare/3.23.1...3.24.0) - 2020-03-15
+### Fixed
+- BlockBundle deprecations
+- API routes config, made them public for the FOSRest routeloader.
+
+### Changed
+- Use Mime Component to guess extension
+- Renamed class `Sonata\MediaBundle\Command\DefaultGenerator` into `Sonata\MediaBundle\Command\IdGenerator`
+- Renamed class `Sonata\MediaBundle\Command\ODMGenerator` into `Sonata\MediaBundle\Command\UuidGenerator`
+- Renamed class `Sonata\MediaBundle\Command\PHPCRGenerator` into `Sonata\MediaBundle\Command\PathGenerator`
+- Made width setting non-mandatory but made width or height setting mandatory on the resizer.
+
+### Removed
+- support for Symfony < 4.3
+
+## [3.23.1](https://github.com/sonata-project/SonataMediaBundle/compare/3.23.0...3.23.1) - 2020-02-06
+### Fixed
+- Generating path when using VO representing UUID
+- Deprecations about commands not returning an exit code
+
+## [3.23.0](https://github.com/sonata-project/SonataMediaBundle/compare/3.22.0...3.23.0) - 2020-01-07
+### Added
+- Added support for "knplabs/gaufrette:0.9".
+
+### Fixed
+- Fixed passing the default values to the `sonata.media.metadata.amazon` service.
+
+## [3.22.0](https://github.com/sonata-project/SonataMediaBundle/compare/3.21.0...3.22.0) - 2019-12-15
+### Added
+- Imagine `^1.0` support
+
+### Changed
+- `SimpleResizer` and `SquareResizer` resizers now use `ImagineCompatibleResizerTrait`
+
+### Fixed
+- Fixed using old string types to create forms
+- Add the `addResizer` method call on the thumbnail service only if the method exists.
+- Add missing default service argument for `AmazonMetadataBuilder`
+
+### Removed
+- Support for Symfony < 3.4
+- Support for Symfony >= 4, < 4.2
+
+## [3.21.0](https://github.com/sonata-project/SonataMediaBundle/compare/3.20.1...3.21.0) - 2019-10-21
+### Added
+- Add missing translation for admin menu
+
+### Changed
+- Changed parameter type in `MediaInterface::setCdnFlushIdentifier`
+- Add `breadcrumb` as default context for seo blocks
+- the alt tag of media picture elements to the media description, falling back
+  to the name when no description is present
+- Bumped "twig/twig" dependency to "^2.9";
+- Changed usages of `{% spaceless %}` tag, which is deprecated as of Twig 1.38
+  with `{% apply spaceless %}` filter;
+- Changed usages of `{% for .. if .. %}`, which is deprecated as of Twig 2.10
+  with `filter` filter'.
+
+### Fixed
+- Using deprecated `\Twig_` classes without namespace.
+- Respect "field_description.options.route.name" value at
+  `list_image.html.twig` instead of using hardcoded "edit".
+- Possibility to resolve Twig dependency to versions that don't support arrow
+  functions on Twig filters.
+
+### Deprecated
+- Extending classes marked as final:
+ * `Sonata\MediaBundle\Admin\GalleryAdmin`
+ * `Sonata\MediaBundle\Admin\GalleryHasMediaAdmin`
+ * `Sonata\MediaBundle\Admin\ODM\MediaAdmin`
+ * `Sonata\MediaBundle\Admin\ORM\MediaAdmin`
+ * `Sonata\MediaBundle\Admin\PHPCR\GalleryAdmin`
+ * `Sonata\MediaBundle\Admin\PHPCR\MediaAdmin`
+ * `Sonata\MediaBundle\Block\Breadcrumb\GalleryIndexBreadcrumbBlockService`
+ * `Sonata\MediaBundle\Block\Breadcrumb\GalleryViewBreadcrumbBlockService`
+ * `Sonata\MediaBundle\Block\Breadcrumb\MediaViewBreadcrumbBlockService`
+ * `Sonata\MediaBundle\Block\FeatureMediaBlockService`
+ * `Sonata\MediaBundle\Block\GalleryBlockService`
+ * `Sonata\MediaBundle\Block\GalleryListBlockService`
+ * `Sonata\MediaBundle\Block\MediaBlockService`
+ * `Sonata\MediaBundle\CDN\CloudFront`
+ * `Sonata\MediaBundle\CDN\Fallback`
+ * `Sonata\MediaBundle\CDN\PantherPortal`
+ * `Sonata\MediaBundle\CDN\Server`
+ * `Sonata\MediaBundle\Command\AddMassMediaCommand`
+ * `Sonata\MediaBundle\Command\AddMediaCommand`
+ * `Sonata\MediaBundle\Command\CleanMediaCommand`
+ * `Sonata\MediaBundle\Command\FixMediaContextCommand`
+ * `Sonata\MediaBundle\Command\MigrateToJsonTypeCommand`
+ * `Sonata\MediaBundle\Command\RefreshMetadataCommand`
+ * `Sonata\MediaBundle\Command\RemoveThumbsCommand`
+ * `Sonata\MediaBundle\Command\SyncThumbsCommand`
+ * `Sonata\MediaBundle\Command\UpdateCdnStatusCommand`
+ * `Sonata\MediaBundle\Consumer\CreateThumbnailConsumer`
+ * `Sonata\MediaBundle\Controller\Api\GalleryController`
+ * `Sonata\MediaBundle\Controller\Api\MediaController`
+ * `Sonata\MediaBundle\Controller\GalleryAdminController`
+ * `Sonata\MediaBundle\Controller\GalleryController`
+ * `Sonata\MediaBundle\Controller\MediaAdminController`
+ * `Sonata\MediaBundle\Controller\MediaController`
+ * `Sonata\MediaBundle\DependencyInjection\Compiler\AddProviderCompilerPass`
+ * `Sonata\MediaBundle\DependencyInjection\Compiler\GlobalVariablesCompilerPass`
+ * `Sonata\MediaBundle\DependencyInjection\Compiler\SecurityContextCompilerPass`
+ * `Sonata\MediaBundle\DependencyInjection\Compiler\ThumbnailCompilerPass`
+ * `Sonata\MediaBundle\DependencyInjection\Configuration`
+ * `Sonata\MediaBundle\DependencyInjection\SonataMediaExtension`
+ * `Sonata\MediaBundle\Document\GalleryManager`
+ * `Sonata\MediaBundle\Document\MediaManager`
+ * `Sonata\MediaBundle\Entity\GalleryManager`
+ * `Sonata\MediaBundle\Entity\MediaManager`
+ * `Sonata\MediaBundle\Extra\ApiMediaFile`
+ * `Sonata\MediaBundle\Extra\Pixlr`
+ * `Sonata\MediaBundle\Filesystem\Local`
+ * `Sonata\MediaBundle\Filesystem\Replicate`
+ * `Sonata\MediaBundle\Form\DataTransformer\ProviderDataTransformer`
+ * `Sonata\MediaBundle\Form\DataTransformer\ServiceProviderDataTransformer`
+ * `Sonata\MediaBundle\Form\Type\ApiDoctrineMediaType`
+ * `Sonata\MediaBundle\Form\Type\ApiGalleryHasMediaType`
+ * `Sonata\MediaBundle\Form\Type\ApiGalleryType`
+ * `Sonata\MediaBundle\Form\Type\ApiMediaType`
+ * `Sonata\MediaBundle\Form\Type\MediaType`
+ * `Sonata\MediaBundle\Generator\DefaultGenerator`
+ * `Sonata\MediaBundle\Generator\ODMGenerator`
+ * `Sonata\MediaBundle\Generator\PHPCRGenerator`
+ * `Sonata\MediaBundle\Listener\ODM\MediaEventSubscriber`
+ * `Sonata\MediaBundle\Listener\ORM\MediaEventSubscriber`
+ * `Sonata\MediaBundle\Listener\PHPCR\MediaEventSubscriber`
+ * `Sonata\MediaBundle\Metadata\AmazonMetadataBuilder`
+ * `Sonata\MediaBundle\Metadata\NoopMetadataBuilder`
+ * `Sonata\MediaBundle\Metadata\ProxyMetadataBuilder`
+ * `Sonata\MediaBundle\PHPCR\BaseGalleryHasMediaRepository`
+ * `Sonata\MediaBundle\PHPCR\BaseGalleryRepository`
+ * `Sonata\MediaBundle\PHPCR\BaseMediaRepository`
+ * `Sonata\MediaBundle\PHPCR\GalleryManager`
+ * `Sonata\MediaBundle\PHPCR\MediaManager`
+ * `Sonata\MediaBundle\Provider\DailyMotionProvider`
+ * `Sonata\MediaBundle\Provider\FileProvider`
+ * `Sonata\MediaBundle\Provider\ImageProvider`
+ * `Sonata\MediaBundle\Provider\Pool`
+ * `Sonata\MediaBundle\Provider\VimeoProvider`
+ * `Sonata\MediaBundle\Provider\YouTubeProvider`
+ * `Sonata\MediaBundle\Resizer\SimpleResizer`
+ * `Sonata\MediaBundle\Resizer\SquareResizer`
+ * `Sonata\MediaBundle\Security\ForbiddenDownloadStrategy`
+ * `Sonata\MediaBundle\Security\PublicDownloadStrategy`
+ * `Sonata\MediaBundle\Security\RolesDownloadStrategy`
+ * `Sonata\MediaBundle\Security\SessionDownloadStrategy`
+ * `Sonata\MediaBundle\Serializer\GallerySerializerHandler`
+ * `Sonata\MediaBundle\Serializer\MediaSerializerHandler`
+ * `Sonata\MediaBundle\SonataMediaBundle`
+ * `Sonata\MediaBundle\Thumbnail\ConsumerThumbnail`
+ * `Sonata\MediaBundle\Thumbnail\FormatThumbnail`
+ * `Sonata\MediaBundle\Thumbnail\LiipImagineThumbnail`
+ * `Sonata\MediaBundle\Twig\Extension\FormatterMediaExtension`
+ * `Sonata\MediaBundle\Twig\Extension\MediaExtension`
+ * `Sonata\MediaBundle\Twig\GlobalVariables`
+ * `Sonata\MediaBundle\Twig\Node\MediaNode`
+ * `Sonata\MediaBundle\Twig\Node\PathNode`
+ * `Sonata\MediaBundle\Twig\Node\ThumbnailNode`
+ * `Sonata\MediaBundle\Twig\TokenParser\MediaTokenParser`
+ * `Sonata\MediaBundle\Twig\TokenParser\PathTokenParser`
+ * `Sonata\MediaBundle\Twig\TokenParser\ThumbnailTokenParser`
+ * `Sonata\MediaBundle\Validator\Constraints\ValidMediaFormat`
+ * `Sonata\MediaBundle\Validator\FormatValidator`
+
+## [3.20.1](https://github.com/sonata-project/SonataMediaBundle/compare/3.20.0...3.20.1) - 2019-06-13
+
+### Fixed
+- Value of code to throw RuntimeException when url of video throw an exception
+
+### Changed
+- Updated `_controller` attribute for routes which were using deprecated syntax.
+
+## [3.20.0](https://github.com/sonata-project/SonataMediaBundle/compare/3.19.1...3.20.0) - 2019-05-16
+
+### Added
+- Added compatibility with `jms/serializer-bundle:^3.0`
+- In context settings right now you can add the custom array named `resizer_options`.
+
+### Fixed
+- Fix error 500 when max post size is exceeded on multi providers context
+- Fix file too big message not displayed when
+  `$media->getBinaryContent()->getClientSize()` return `null`
+
+## [3.19.1](https://github.com/sonata-project/SonataMediaBundle/compare/3.19.0...3.19.1) - 2019-02-23
+
+### Fixed
+- return type for `CategoryManager::find()`
+- Crash about `setFormTheme` when viewing the gallery list
+
+## [3.19.0](https://github.com/sonata-project/SonataMediaBundle/compare/3.18.1...3.19.0) - 2019-02-21
+
+### Added
+- Added configuration option for the media helper to generate a <picture> instead of <img>
+
+### Changed
+- Sort galleryHasMedias on GalleryAdmin::postUpdate
+
+### Fixed
+- `SimpleResizer::computeBox()` will return the size of the resulting image
+  instead of just the scaled image before the cropping step.
+- Fix configuration defaults: omitted dimensions in format definitions must be `null`
+- Strict checking of height/width sizes in formats configuration
+- Crash about `setFormTheme` when viewing the media list
+- `TypeError` on media upload when validation fails for another field
+
+## [3.18.1](https://github.com/sonata-project/SonataMediaBundle/compare/3.18.0...3.18.1) - 2019-01-21
+### Fixed
+- crash about wrong provider argument type when trying to upload a media
+
+## [3.18.0](https://github.com/sonata-project/SonataMediaBundle/compare/3.17.1...3.18.0) - 2019-01-18
+
+### Added
+- Added alias for providers to use autoconfigure via DependencyInjection
+- Added `Sonata\MediaBundle\Provider\Metadata` class
+
+### Changed
+- Changed `MediaProviderInterface::getProviderMetadata` return type in PHPDoc
+- block classes will use the block specific Metadata class
+
+### Removed
+- Removed CoreBundle deprecations
+
+## [3.17.1](https://github.com/sonata-project/SonataMediaBundle/compare/3.17.0...3.17.1) - 2019-01-12
+
+### Fixes
+- crashes on pages with null medias
+
+## [3.17.0](https://github.com/sonata-project/SonataMediaBundle/compare/3.16.3...3.17.0) - 2019-01-10
+### Added
+- Added an alias for the pool
+- Possiblity to create custom resizers
+
+### Changed
+- Allow KnpLabs/Gaufrette 0.8
+
+### Removed
+- support for php 5 and php 7.0
+
+### Fixed
+- Fix deprecation for symfony/config 4.2+
+- Deprecations about `Sonata\CoreBundle\Model\BaseEntityManager`
+
+### Deprecated
+- Undeprecated `MediaManagerInterface`
+
+## [3.16.3](https://github.com/sonata-project/SonataMediaBundle/compare/3.16.2...3.16.3) - 2018-11-05
+### Fixed
+- Added missing methods to `FormatterMediaExtension`
+
+## [3.16.2](https://github.com/sonata-project/SonataMediaBundle/compare/3.16.1...3.16.2) - 2018-10-17
+### Fixed
+ - Fix dailymotion regex to extract the video reference from the url.
+
 ## [3.16.1](https://github.com/sonata-project/SonataMediaBundle/compare/3.16.0...3.16.1) - 2018-10-03
 ### Fixed
 - Prevent incompatible `sonata-project/formatter-bundle` 4 from being installed

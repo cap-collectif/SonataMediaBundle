@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace Sonata\MediaBundle\Provider;
 
-use Sonata\CoreBundle\Model\Metadata;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class DailyMotionProvider extends BaseVideoProvider
 {
     /**
@@ -98,7 +100,7 @@ class DailyMotionProvider extends BaseVideoProvider
     /**
      * {@inheritdoc}
      */
-    public function updateMetadata(MediaInterface $media, $force = false): void
+    public function updateMetadata(MediaInterface $media, $force = false)
     {
         $url = sprintf('http://www.dailymotion.com/services/oembed?url=%s&format=json', $this->getReferenceUrl($media));
 
@@ -133,8 +135,6 @@ class DailyMotionProvider extends BaseVideoProvider
     /**
      * Get provider reference url.
      *
-     * @param MediaInterface $media
-     *
      * @return string
      */
     public function getReferenceUrl(MediaInterface $media)
@@ -142,16 +142,13 @@ class DailyMotionProvider extends BaseVideoProvider
         return sprintf('http://www.dailymotion.com/video/%s', $media->getProviderReference());
     }
 
-    /**
-     * @param MediaInterface $media
-     */
-    protected function fixBinaryContent(MediaInterface $media): void
+    protected function fixBinaryContent(MediaInterface $media)
     {
         if (!$media->getBinaryContent()) {
             return;
         }
 
-        if (preg_match("/www.dailymotion.com\/video\/([0-9a-zA-Z]*)_/", $media->getBinaryContent(), $matches)) {
+        if (preg_match("/^(?:https?:\/\/)?www.dailymotion.com\/video\/([0-9a-zA-Z]*)/", $media->getBinaryContent(), $matches)) {
             $media->setBinaryContent($matches[1]);
         }
     }
@@ -159,7 +156,7 @@ class DailyMotionProvider extends BaseVideoProvider
     /**
      * {@inheritdoc}
      */
-    protected function doTransform(MediaInterface $media): void
+    protected function doTransform(MediaInterface $media)
     {
         $this->fixBinaryContent($media);
 

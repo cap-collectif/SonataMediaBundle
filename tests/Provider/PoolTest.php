@@ -16,9 +16,10 @@ namespace Sonata\MediaBundle\Tests\Provider;
 use Gaufrette\Filesystem;
 use PHPUnit\Framework\TestCase;
 use Sonata\MediaBundle\CDN\Server;
-use Sonata\MediaBundle\Generator\DefaultGenerator;
+use Sonata\MediaBundle\Generator\IdGenerator;
 use Sonata\MediaBundle\Metadata\MetadataBuilderInterface;
 use Sonata\MediaBundle\Provider\FileProvider;
+use Sonata\MediaBundle\Provider\MediaProviderInterface;
 use Sonata\MediaBundle\Provider\Pool;
 use Sonata\MediaBundle\Thumbnail\FormatThumbnail;
 
@@ -35,7 +36,7 @@ class PoolTest extends TestCase
         $mediaPool = $this
             ->getMockBuilder(Pool::class)
             ->disableOriginalConstructor()
-            ->setMethods(null)
+            ->onlyMethods([])
             ->getMock()
         ;
 
@@ -50,7 +51,7 @@ class PoolTest extends TestCase
         $mediaPool = $this
             ->getMockBuilder(Pool::class)
             ->disableOriginalConstructor()
-            ->setMethods(null)
+            ->onlyMethods([])
             ->getMock()
         ;
 
@@ -65,7 +66,7 @@ class PoolTest extends TestCase
         $mediaPool = $this
             ->getMockBuilder(Pool::class)
             ->disableOriginalConstructor()
-            ->setMethods(null)
+            ->onlyMethods([])
             ->getMock()
         ;
         $mediaPool->setProviders([
@@ -75,16 +76,11 @@ class PoolTest extends TestCase
         $mediaPool->getProvider('provider_c');
     }
 
-    /**
-     * @param string $name
-     *
-     * @return FileProvider
-     */
-    protected function createProvider($name)
+    protected function createProvider(string $name): MediaProviderInterface
     {
         $filesystem = $this->createMock(Filesystem::class);
         $cdn = new Server('/uploads/media');
-        $generator = new DefaultGenerator();
+        $generator = new IdGenerator();
         $thumbnail = new FormatThumbnail('jpg');
         $metadata = $this->createMock(MetadataBuilderInterface::class);
 

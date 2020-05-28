@@ -18,6 +18,9 @@ use Gaufrette\Adapter\MetadataSupporter;
 use Gaufrette\Filesystem;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class Replicate implements AdapterInterface, MetadataSupporter
 {
     /**
@@ -36,11 +39,9 @@ class Replicate implements AdapterInterface, MetadataSupporter
     protected $logger;
 
     /**
-     * @param \Gaufrette\Adapter $master
-     * @param \Gaufrette\Adapter $slave
-     * @param LoggerInterface    $logger
+     * @param LoggerInterface $logger
      */
-    public function __construct(AdapterInterface $master, AdapterInterface $slave, LoggerInterface $logger = null)
+    public function __construct(AdapterInterface $master, AdapterInterface $slave, ?LoggerInterface $logger = null)
     {
         $this->master = $master;
         $this->slave = $slave;
@@ -104,7 +105,7 @@ class Replicate implements AdapterInterface, MetadataSupporter
     /**
      * {@inheritdoc}
      */
-    public function write($key, $content, array $metadata = null)
+    public function write($key, $content, ?array $metadata = null)
     {
         $ok = true;
         $return = false;

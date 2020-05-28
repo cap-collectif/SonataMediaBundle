@@ -21,11 +21,6 @@ interface GalleryInterface
     public function __toString();
 
     /**
-     * @return int
-     */
-    public function getId();
-
-    /**
      * Set name.
      *
      * @param string $name
@@ -67,10 +62,8 @@ interface GalleryInterface
 
     /**
      * Set updated_at.
-     *
-     * @param \DateTime|null $updatedAt
      */
-    public function setUpdatedAt(\DateTime $updatedAt = null);
+    public function setUpdatedAt(?\DateTime $updatedAt = null);
 
     /**
      * Get updated_at.
@@ -81,10 +74,8 @@ interface GalleryInterface
 
     /**
      * Set created_at.
-     *
-     * @param \DateTime|null $createdAt
      */
-    public function setCreatedAt(\DateTime $createdAt = null);
+    public function setCreatedAt(?\DateTime $createdAt = null);
 
     /**
      * Get created_at.
@@ -104,17 +95,18 @@ interface GalleryInterface
     public function getDefaultFormat();
 
     /**
-     * @param array $galleryItems
+     * @param array $galleryHasMedias
      */
-    public function setGalleryItems($galleryItems);
+    public function setGalleryHasMedias($galleryHasMedias);
 
     /**
-     * @return GalleryItemInterface[]
+     * @return GalleryHasMediaInterface[]
      */
-    public function getGalleryItems();
+    public function getGalleryHasMedias();
 
     /**
-     * @param GalleryItemInterface $galleryItem
+     * @deprecated implement addGalleryHasMedia method instead, it will be provided with the next major release
+     * NEXT_MAJOR: remove this method
      */
-    public function addGalleryItem(GalleryItemInterface $galleryItem);
+    public function addGalleryHasMedias(GalleryHasMediaInterface $galleryHasMedia);
 }

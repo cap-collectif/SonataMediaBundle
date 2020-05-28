@@ -27,7 +27,11 @@ use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class MediaType extends AbstractType implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
@@ -43,7 +47,6 @@ class MediaType extends AbstractType implements LoggerAwareInterface
     protected $class;
 
     /**
-     * @param Pool   $pool
      * @param string $class
      */
     public function __construct(Pool $pool, $class)
@@ -56,7 +59,7 @@ class MediaType extends AbstractType implements LoggerAwareInterface
     /**
      * {@inheritdoc}
      */
-    public function buildForm(FormBuilderInterface $builder, array $options): void
+    public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $dataTransformer = new ProviderDataTransformer($this->pool, $this->class, [
             'provider' => $options['provider'],
@@ -68,7 +71,7 @@ class MediaType extends AbstractType implements LoggerAwareInterface
 
         $builder->addModelTransformer($dataTransformer);
 
-        $builder->addEventListener(FormEvents::SUBMIT, function (FormEvent $event): void {
+        $builder->addEventListener(FormEvents::SUBMIT, static function (FormEvent $event) {
             if ($event->getForm()->has('unlink') && $event->getForm()->get('unlink')->getData()) {
                 $event->setData(null);
             }
@@ -87,16 +90,26 @@ class MediaType extends AbstractType implements LoggerAwareInterface
     /**
      * {@inheritdoc}
      */
-    public function buildView(FormView $view, FormInterface $form, array $options): void
+    public function buildView(FormView $view, FormInterface $form, array $options)
     {
         $view->vars['provider'] = $options['provider'];
         $view->vars['context'] = $options['context'];
     }
 
     /**
+     * NEXT_MAJOR: Remove this method.
+     *
+     * @deprecated Remove it when bumping requirements to Symfony >=2.7
+     */
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
+    {
+        $this->configureOptions($resolver);
+    }
+
+    /**
      * {@inheritdoc}
      */
-    public function configureOptions(OptionsResolver $resolver): void
+    public function configureOptions(OptionsResolver $resolver)
     {
         $resolver
             ->setDefaults([
@@ -129,7 +142,9 @@ class MediaType extends AbstractType implements LoggerAwareInterface
     }
 
     /**
-     * {@inheritdoc}
+     * NEXT_MAJOR: Remove this method.
+     *
+     * @deprecated since sonata-project/media-bundle 3.22, to be removed in version 4.0.
      */
     public function getName()
     {

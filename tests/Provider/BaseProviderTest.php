@@ -14,46 +14,37 @@ declare(strict_types=1);
 namespace Sonata\MediaBundle\Tests\Provider;
 
 use Gaufrette\Adapter;
-use Gaufrette\File;
 use Gaufrette\Filesystem;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\MediaBundle\CDN\CDNInterface;
 use Sonata\MediaBundle\CDN\Server;
-use Sonata\MediaBundle\Generator\DefaultGenerator;
-use Sonata\MediaBundle\Metadata\MetadataBuilderInterface;
+use Sonata\MediaBundle\Generator\IdGenerator;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Provider\BaseProvider;
+use Sonata\MediaBundle\Provider\MediaProviderInterface;
 use Sonata\MediaBundle\Tests\Entity\Media;
 use Sonata\MediaBundle\Thumbnail\ThumbnailInterface;
 use Symfony\Component\Form\FormBuilder;
 
 class BaseProviderTest extends AbstractProviderTest
 {
-    public function getProvider()
+    public function getProvider(): MediaProviderInterface
     {
         $adapter = $this->createMock(Adapter::class);
 
         $filesystem = $this->getMockBuilder(Filesystem::class)
-            ->setMethods(['get'])
+            ->onlyMethods(['get'])
             ->setConstructorArgs([$adapter])
             ->getMock();
-        $file = $this->getMockBuilder(File::class)
-            ->setConstructorArgs(['foo', $filesystem])
-            ->getMock();
-
-        $filesystem->expects($this->any())
-            ->method('get')
-            ->will($this->returnValue($file));
 
         $cdn = new Server('/uploads/media');
 
-        $generator = new DefaultGenerator();
+        $generator = new IdGenerator();
 
         $thumbnail = $this->createMock(ThumbnailInterface::class);
 
-        $metadata = $this->createMock(MetadataBuilderInterface::class);
-
-        $provider = new TestProvider('test', $filesystem, $cdn, $generator, $thumbnail, $metadata);
+        $provider = new TestProvider('test', $filesystem, $cdn, $generator, $thumbnail);
+        $this->assertInstanceOf(BaseProvider::class, $provider);
 
         return $provider;
     }
@@ -65,14 +56,14 @@ class BaseProviderTest extends AbstractProviderTest
             'edit' => 'edit.twig',
         ]);
 
-        $this->assertInternalType('array', $provider->getTemplates());
+        $this->assertIsArray($provider->getTemplates());
         $this->assertSame('edit.twig', $provider->getTemplate('edit'));
 
         $this->assertInstanceOf(CDNInterface::class, $provider->getCdn());
 
         $provider->addFormat('small', []);
 
-        $this->assertInternalType('array', $provider->getFormat('small'));
+        $this->assertIsArray($provider->getFormat('small'));
 
         $media = new Media();
         $media->setContext('test');
@@ -95,14 +86,44 @@ class BaseProviderTest extends AbstractProviderTest
 
         $this->assertSame('test', $provider->getProviderMetadata()->getTitle());
         $this->assertSame('test.description', $provider->getProviderMetadata()->getDescription());
-        $this->assertFalse($provider->getProviderMetadata()->getImage());
+        $this->assertNotNull($provider->getProviderMetadata()->getImage());
         $this->assertSame('fa fa-file', $provider->getProviderMetadata()->getOption('class'));
         $this->assertSame('SonataMediaBundle', $provider->getProviderMetadata()->getDomain());
+    }
+
+    public function testPostRemove(): void
+    {
+        $reflect = new \ReflectionClass(BaseProvider::class);
+        $prop = $reflect->getProperty('clones');
+        $prop->setAccessible(true);
+
+        $provider = $this->getProvider();
+        $media = new Media();
+        $media->setId(1399);
+        $media->setProviderReference('1f981a048e7d8b671415d17e9633abc0059df394.png');
+        $hash = spl_object_hash($media);
+
+        $provider->preRemove($media);
+
+        $this->assertArrayHasKey($hash, $prop->getValue($provider));
+
+        $media->setId(null); // Emulate an object detached from the EntityManager.
+        $provider->postRemove($media);
+
+        $this->assertArrayNotHasKey($hash, $prop->getValue($provider));
+        $this->assertSame('/0001/02/1f981a048e7d8b671415d17e9633abc0059df394.png', $provider->prevReferenceImage);
+
+        $prop->setAccessible(false);
     }
 }
 
 class TestProvider extends BaseProvider
 {
+    /**
+     * @var string
+     */
+    public $prevReferenceImage;
+
     /**
      * {@inheritdoc}
      */
@@ -124,7 +145,7 @@ class TestProvider extends BaseProvider
      */
     public function buildEditForm(FormMapper $form): void
     {
-        // TODO: Implement buildEditForm() method.
+        $form->add('foo');
     }
 
     /**
@@ -132,7 +153,7 @@ class TestProvider extends BaseProvider
      */
     public function buildCreateForm(FormMapper $form): void
     {
-        // TODO: Implement buildCreateForm() method.
+        $form->add('foo');
     }
 
     /**
@@ -154,9 +175,16 @@ class TestProvider extends BaseProvider
     /**
      * {@inheritdoc}
      */
-    public function getReferenceImage(MediaInterface $media): void
+    public function getReferenceImage(MediaInterface $media): string
     {
-        // TODO: Implement getReferenceImage() method.
+        // A copy of the code from \Sonata\MediaBundle\Provider\FileProvider::getReferenceImage()
+        $this->prevReferenceImage = sprintf(
+            '%s/%s',
+            $this->generatePath($media),
+            $media->getProviderReference()
+        );
+
+        return $this->prevReferenceImage;
     }
 
     /**
@@ -194,14 +222,6 @@ class TestProvider extends BaseProvider
     /**
      * {@inheritdoc}
      */
-    public function postRemove(MediaInterface $media): void
-    {
-        // TODO: Implement postRemove() method.
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function prePersist(MediaInterface $media): void
     {
         // TODO: Implement prePersist() method.
@@ -220,7 +240,7 @@ class TestProvider extends BaseProvider
      */
     public function buildMediaType(FormBuilder $formBuilder): void
     {
-        // TODO: Implement buildMediaType() method.
+        $formBuilder->add('foo');
     }
 
     /**

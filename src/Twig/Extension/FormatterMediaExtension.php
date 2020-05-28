@@ -13,23 +13,23 @@ declare(strict_types=1);
 
 namespace Sonata\MediaBundle\Twig\Extension;
 
-use Sonata\FormatterBundle\Extension\BaseProxyExtension;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Twig\TokenParser\MediaTokenParser;
 use Sonata\MediaBundle\Twig\TokenParser\PathTokenParser;
 use Sonata\MediaBundle\Twig\TokenParser\ThumbnailTokenParser;
+use Twig\Extension\AbstractExtension;
 use Twig\Extension\ExtensionInterface;
 
-class FormatterMediaExtension extends BaseProxyExtension
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
+class FormatterMediaExtension extends AbstractExtension implements ExtensionInterface
 {
     /**
-     * @var ExtensionInterface
+     * @var AbstractExtension
      */
     protected $twigExtension;
 
-    /**
-     * @param ExtensionInterface $twigExtension
-     */
     public function __construct(ExtensionInterface $twigExtension)
     {
         $this->twigExtension = $twigExtension;
@@ -38,7 +38,7 @@ class FormatterMediaExtension extends BaseProxyExtension
     /**
      * {@inheritdoc}
      */
-    public function getAllowedTags(): array
+    public function getAllowedTags()
     {
         return [
             'media',
@@ -50,7 +50,7 @@ class FormatterMediaExtension extends BaseProxyExtension
     /**
      * {@inheritdoc}
      */
-    public function getAllowedMethods(): array
+    public function getAllowedMethods()
     {
         return [
             MediaInterface::class => [
@@ -62,7 +62,7 @@ class FormatterMediaExtension extends BaseProxyExtension
     /**
      * {@inheritdoc}
      */
-    public function getTokenParsers(): array
+    public function getTokenParsers()
     {
         return [
             new MediaTokenParser(__CLASS__),
@@ -74,7 +74,7 @@ class FormatterMediaExtension extends BaseProxyExtension
     /**
      * @return ExtensionInterface
      */
-    public function getTwigExtension(): ExtensionInterface
+    public function getTwigExtension()
     {
         return $this->twigExtension;
     }
@@ -112,5 +112,45 @@ class FormatterMediaExtension extends BaseProxyExtension
     public function path($media, $format)
     {
         return $this->getTwigExtension()->path($media, $format);
+    }
+
+    public function getNodeVisitors()
+    {
+        return $this->getTwigExtension()->getNodeVisitors();
+    }
+
+    public function getFilters()
+    {
+        return $this->getTwigExtension()->getFilters();
+    }
+
+    public function getTests()
+    {
+        return $this->getTwigExtension()->getTests();
+    }
+
+    public function getFunctions()
+    {
+        return $this->getTwigExtension()->getFunctions();
+    }
+
+    public function getOperators()
+    {
+        return $this->getTwigExtension()->getOperators();
+    }
+
+    public function getAllowedFilters()
+    {
+        return [];
+    }
+
+    public function getAllowedFunctions()
+    {
+        return [];
+    }
+
+    public function getAllowedProperties()
+    {
+        return [];
     }
 }

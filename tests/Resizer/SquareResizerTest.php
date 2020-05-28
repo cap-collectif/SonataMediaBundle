@@ -39,12 +39,12 @@ class SquareResizerTest extends TestCase
     /**
      * @dataProvider getBoxSettings
      */
-    public function testGetBox($settings, Box $mediaSize, Box $expected): void
+    public function testGetBox(array $settings, Box $mediaSize, Box $expected): void
     {
         $adapter = $this->createMock(ImagineInterface::class);
 
         $media = $this->createMock(MediaInterface::class);
-        $media->expects($this->once())->method('getBox')->will($this->returnValue($mediaSize));
+        $media->expects($this->once())->method('getBox')->willReturn($mediaSize);
 
         $metadata = $this->createMock(MetadataBuilderInterface::class);
 
@@ -58,7 +58,7 @@ class SquareResizerTest extends TestCase
         $this->assertSame($expected->getHeight(), $box->getHeight());
     }
 
-    public static function getBoxSettings()
+    public static function getBoxSettings(): array
     {
         return [
             [['width' => 90, 'height' => 90], new Box(100, 120), new Box(90, 90)],

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Sonata\MediaBundle\Model;
 
-use Sonata\CoreBundle\Model\ManagerInterface;
+use Sonata\Doctrine\Model\ManagerInterface;
 use Sonata\MediaBundle\Exception\NoDriverException;
 
 /**
@@ -23,12 +23,12 @@ use Sonata\MediaBundle\Exception\NoDriverException;
  */
 final class NoDriverManager implements ManagerInterface
 {
-    public function getClass(): void
+    public function getClass()
     {
         throw new NoDriverException();
     }
 
-    public function findAll(): void
+    public function findAll()
     {
         throw new NoDriverException();
     }
@@ -37,12 +37,12 @@ final class NoDriverManager implements ManagerInterface
      * @param int|null $limit
      * @param int|null $offset
      */
-    public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null): void
+    public function findBy(array $criteria, ?array $orderBy = null, $limit = null, $offset = null): void
     {
         throw new NoDriverException();
     }
 
-    public function findOneBy(array $criteria, array $orderBy = null): void
+    public function findOneBy(array $criteria, ?array $orderBy = null): void
     {
         throw new NoDriverException();
     }

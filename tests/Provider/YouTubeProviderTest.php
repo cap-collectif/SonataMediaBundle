@@ -23,8 +23,9 @@ use Imagine\Image\Box;
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\MediaBundle\CDN\Server;
-use Sonata\MediaBundle\Generator\DefaultGenerator;
+use Sonata\MediaBundle\Generator\IdGenerator;
 use Sonata\MediaBundle\Metadata\MetadataBuilderInterface;
+use Sonata\MediaBundle\Provider\MediaProviderInterface;
 use Sonata\MediaBundle\Provider\YouTubeProvider;
 use Sonata\MediaBundle\Resizer\ResizerInterface;
 use Sonata\MediaBundle\Tests\Entity\Media;
@@ -32,36 +33,36 @@ use Sonata\MediaBundle\Thumbnail\FormatThumbnail;
 
 class YouTubeProviderTest extends AbstractProviderTest
 {
-    public function getProvider(Browser $browser = null)
+    public function getProvider(?Browser $browser = null): MediaProviderInterface
     {
         if (!$browser) {
             $browser = $this->createMock(Browser::class);
         }
 
         $resizer = $this->createMock(ResizerInterface::class);
-        $resizer->expects($this->any())->method('resize')->will($this->returnValue(true));
-        $resizer->expects($this->any())->method('getBox')->will($this->returnValue(new Box(100, 100)));
+        $resizer->method('resize')->willReturn(true);
+        $resizer->method('getBox')->willReturn(new Box(100, 100));
 
         $adapter = $this->createMock(Adapter::class);
 
         $filesystem = $this->getMockBuilder(Filesystem::class)
-            ->setMethods(['get'])
+            ->onlyMethods(['get'])
             ->setConstructorArgs([$adapter])
             ->getMock();
         $file = $this->getMockBuilder(File::class)
             ->setConstructorArgs(['foo', $filesystem])
             ->getMock();
-        $filesystem->expects($this->any())->method('get')->will($this->returnValue($file));
+        $filesystem->method('get')->willReturn($file);
 
         $cdn = new Server('/uploads/media');
 
-        $generator = new DefaultGenerator();
+        $generator = new IdGenerator();
 
         $thumbnail = new FormatThumbnail('jpg');
 
         $metadata = $this->createMock(MetadataBuilderInterface::class);
 
-        $provider = new YouTubeProvider('file', $filesystem, $cdn, $generator, $thumbnail, $browser, $metadata);
+        $provider = new YouTubeProvider('youtube', $filesystem, $cdn, $generator, $thumbnail, $browser, $metadata);
         $provider->setResizer($resizer);
 
         return $provider;
@@ -89,11 +90,11 @@ class YouTubeProviderTest extends AbstractProviderTest
     public function testThumbnail(): void
     {
         $response = $this->createMock(AbstractMessage::class);
-        $response->expects($this->once())->method('getContent')->will($this->returnValue('content'));
+        $response->expects($this->once())->method('getContent')->willReturn('content');
 
         $browser = $this->createMock(Browser::class);
 
-        $browser->expects($this->once())->method('get')->will($this->returnValue($response));
+        $browser->expects($this->once())->method('get')->willReturn($response);
 
         $provider = $this->getProvider($browser);
 
@@ -105,7 +106,7 @@ class YouTubeProviderTest extends AbstractProviderTest
 
         $media->setId(1023457);
 
-        $this->assertTrue($provider->requireThumbnails($media));
+        $this->assertTrue($provider->requireThumbnails());
 
         $provider->addFormat('big', ['width' => 200, 'height' => 100, 'constraint' => true]);
 
@@ -122,14 +123,13 @@ class YouTubeProviderTest extends AbstractProviderTest
         $response->setContent(file_get_contents(__DIR__.'/../fixtures/valid_youtube.txt'));
 
         $browser = $this->createMock(Browser::class);
-        $browser->expects($this->once())->method('get')->will($this->returnValue($response));
+        $browser->expects($this->once())->method('get')->willReturn($response);
 
         $provider = $this->getProvider($browser);
 
         $provider->addFormat('big', ['width' => 200, 'height' => 100, 'constraint' => true]);
 
         $media = new Media();
-        $media->setContext('default');
         $media->setBinaryContent('BDYAbAtaDzA');
         $media->setId(1023456);
 
@@ -143,20 +143,19 @@ class YouTubeProviderTest extends AbstractProviderTest
     /**
      * @dataProvider getUrls
      */
-    public function testTransformWithUrl($url): void
+    public function testTransformWithUrl(string $url): void
     {
         $response = new Response();
         $response->setContent(file_get_contents(__DIR__.'/../fixtures/valid_youtube.txt'));
 
         $browser = $this->createMock(Browser::class);
-        $browser->expects($this->once())->method('get')->will($this->returnValue($response));
+        $browser->expects($this->once())->method('get')->willReturn($response);
 
         $provider = $this->getProvider($browser);
 
         $provider->addFormat('big', ['width' => 200, 'height' => 100, 'constraint' => true]);
 
         $media = new Media();
-        $media->setContext('default');
         $media->setBinaryContent($url);
         $media->setId(1023456);
 
@@ -167,7 +166,7 @@ class YouTubeProviderTest extends AbstractProviderTest
         $this->assertSame('BDYAbAtaDzA', $media->getProviderReference(), '::getProviderReference() is set');
     }
 
-    public static function getUrls()
+    public static function getUrls(): array
     {
         return [
         ['BDYAbAtaDzA'],
@@ -184,22 +183,45 @@ class YouTubeProviderTest extends AbstractProviderTest
         ];
     }
 
+    public function testGetMetadataException(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Unable to retrieve the video information for :BDYAbAtaDzA');
+        $this->expectExceptionCode(12);
+
+        $response = new Response();
+        $response->setContent(file_get_contents(__DIR__.'/../fixtures/valid_youtube.txt'));
+
+        $browser = $this->createMock(Browser::class);
+        $browser->expects($this->once())->method('get')->will($this->throwException(new \RuntimeException('First error on get', 12)));
+
+        $provider = $this->getProvider($browser);
+
+        $provider->addFormat('big', ['width' => 200, 'height' => 100, 'constraint' => true]);
+
+        $media = new Media();
+        $media->setBinaryContent('BDYAbAtaDzA');
+        $media->setId(1023456);
+
+        $method = new \ReflectionMethod($provider, 'getMetadata');
+        $method->setAccessible(true);
+
+        $method->invokeArgs($provider, [$media, 'BDYAbAtaDzA']);
+    }
+
     public function testForm(): void
     {
         $provider = $this->getProvider();
 
         $admin = $this->createMock(AdminInterface::class);
-        $admin->expects($this->any())
+        $admin
             ->method('trans')
-            ->will($this->returnValue('message'));
+            ->willReturn('message');
 
-        $formMapper = $this->getMockBuilder(FormMapper::class)
-            ->setMethods(['add', 'getAdmin'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $formMapper = $this->createMock(FormMapper::class);
         $formMapper->expects($this->exactly(8))
             ->method('add')
-            ->will($this->returnValue(null));
+            ->willReturn(null);
 
         $provider->buildCreateForm($formMapper);
 
@@ -220,7 +242,7 @@ class YouTubeProviderTest extends AbstractProviderTest
 
         $properties = $provider->getHelperProperties($media, 'admin');
 
-        $this->assertInternalType('array', $properties);
+        $this->assertIsArray($properties);
         $this->assertSame(100, $properties['player_parameters']['height']);
         $this->assertSame(100, $properties['player_parameters']['width']);
     }
@@ -229,6 +251,17 @@ class YouTubeProviderTest extends AbstractProviderTest
     {
         $media = new Media();
         $media->setProviderReference('123456');
-        $this->assertEquals('https://www.youtube.com/watch?v=123456', $this->getProvider()->getReferenceUrl($media));
+        $this->assertSame('https://www.youtube.com/watch?v=123456', $this->getProvider()->getReferenceUrl($media));
+    }
+
+    public function testMetadata(): void
+    {
+        $provider = $this->getProvider();
+
+        $this->assertSame('youtube', $provider->getProviderMetadata()->getTitle());
+        $this->assertSame('youtube.description', $provider->getProviderMetadata()->getDescription());
+        $this->assertNotNull($provider->getProviderMetadata()->getImage());
+        $this->assertSame('fa fa-youtube', $provider->getProviderMetadata()->getOption('class'));
+        $this->assertSame('SonataMediaBundle', $provider->getProviderMetadata()->getDomain());
     }
 }

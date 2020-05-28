@@ -13,10 +13,13 @@ declare(strict_types=1);
 
 namespace Sonata\MediaBundle\Document;
 
-use Sonata\CoreBundle\Model\BaseDocumentManager;
+use Sonata\Doctrine\Document\BaseDocumentManager;
 use Sonata\MediaBundle\Model\GalleryInterface;
 use Sonata\MediaBundle\Model\GalleryManagerInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class GalleryManager extends BaseDocumentManager implements GalleryManagerInterface
 {
     /**
@@ -25,8 +28,6 @@ class GalleryManager extends BaseDocumentManager implements GalleryManagerInterf
      * NEXT_MAJOR: remove this method.
      *
      * @deprecated Please use save() from now
-     *
-     * @param GalleryInterface $gallery
      */
     public function update(GalleryInterface $gallery): void
     {

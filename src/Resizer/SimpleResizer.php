@@ -21,8 +21,13 @@ use Imagine\Image\ImagineInterface;
 use Sonata\MediaBundle\Metadata\MetadataBuilderInterface;
 use Sonata\MediaBundle\Model\MediaInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class SimpleResizer implements ResizerInterface
 {
+    use ImagineCompatibleResizerTrait;
+
     /**
      * @var ImagineInterface
      */
@@ -39,14 +44,12 @@ class SimpleResizer implements ResizerInterface
     protected $metadata;
 
     /**
-     * @param ImagineInterface         $adapter
-     * @param string                   $mode
-     * @param MetadataBuilderInterface $metadata
+     * @param string $mode
      */
     public function __construct(ImagineInterface $adapter, $mode, MetadataBuilderInterface $metadata)
     {
         $this->adapter = $adapter;
-        $this->mode = $mode;
+        $this->mode = $this->convertMode($mode);
         $this->metadata = $metadata;
     }
 
@@ -55,8 +58,8 @@ class SimpleResizer implements ResizerInterface
      */
     public function resize(MediaInterface $media, File $in, File $out, $format, array $settings): void
     {
-        if (!isset($settings['width'])) {
-            throw new \RuntimeException(sprintf('Width parameter is missing in context "%s" for provider "%s"', $media->getContext(), $media->getProviderName()));
+        if (!isset($settings['width']) && !isset($settings['height'])) {
+            throw new \RuntimeException(sprintf('Width or height parameter is missing in context "%s" for provider "%s"', $media->getContext(), $media->getProviderName()));
         }
 
         $image = $this->adapter->load($in->getContent());
@@ -75,25 +78,22 @@ class SimpleResizer implements ResizerInterface
     {
         $size = $media->getBox();
 
-        if (null == $settings['width'] && null == $settings['height']) {
+        if (null === $settings['width'] && null === $settings['height']) {
             throw new \RuntimeException(sprintf('Width/Height parameter is missing in context "%s" for provider "%s". Please add at least one parameter.', $media->getContext(), $media->getProviderName()));
         }
 
-        if (null == $settings['height']) {
-            $settings['height'] = (int) ($settings['width'] * $size->getHeight() / $size->getWidth());
+        if (null === $settings['height']) {
+            $settings['height'] = (int) round($settings['width'] * $size->getHeight() / $size->getWidth());
         }
 
-        if (null == $settings['width']) {
-            $settings['width'] = (int) ($settings['height'] * $size->getWidth() / $size->getHeight());
+        if (null === $settings['width']) {
+            $settings['width'] = (int) round($settings['height'] * $size->getWidth() / $size->getHeight());
         }
 
         return $this->computeBox($media, $settings);
     }
 
     /**
-     * @param MediaInterface $media
-     * @param array          $settings
-     *
      * @throws InvalidArgumentException
      *
      * @return Box
@@ -117,6 +117,11 @@ class SimpleResizer implements ResizerInterface
             $ratio = max($ratios);
         }
 
-        return $size->scale($ratio);
+        $scaledBox = $size->scale($ratio);
+
+        return new Box(
+            min($scaledBox->getWidth(), $settings['width']),
+            min($scaledBox->getHeight(), $settings['height'])
+        );
     }
 }

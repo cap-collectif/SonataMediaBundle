@@ -41,6 +41,8 @@ use Aws\CloudFront\Exception\CloudFrontException;
  * to the new distribution. For more information about the charges for
  * invalidation, see Paying for Object Invalidation.
  *
+ * @final since sonata-project/media-bundle 3.21.0
+ *
  * @uses \CloudFrontClient for stablish connection with CloudFront service
  *
  * @see http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Invalidation.htmlInvalidating Objects (Web Distributions Only)
@@ -124,7 +126,7 @@ class CloudFront implements CDNInterface
         }
         // Normalizes paths due possible typos since all the CloudFront's
         // objects starts with a leading slash
-        $normalizedPaths = array_map(function ($path) {
+        $normalizedPaths = array_map(static function ($path) {
             return '/'.ltrim($path, '/');
         }, $paths);
 
@@ -138,7 +140,7 @@ class CloudFront implements CDNInterface
                 'CallerReference' => $this->getCallerReference($normalizedPaths),
             ]);
 
-            if (!\in_array($status = $result->get('Status'), ['Completed', 'InProgress'])) {
+            if (!\in_array($status = $result->get('Status'), ['Completed', 'InProgress'], true)) {
                 throw new \RuntimeException('Unable to flush : '.$status);
             }
 
@@ -169,7 +171,7 @@ class CloudFront implements CDNInterface
                 'Id' => $identifier,
             ]);
 
-            return array_search($result->get('Status'), self::getStatusList());
+            return array_search($result->get('Status'), self::getStatusList(), true);
         } catch (CloudFrontException $ex) {
             throw new \RuntimeException('Unable to retrieve flush status : '.$ex->getMessage());
         }
@@ -195,8 +197,6 @@ class CloudFront implements CDNInterface
     /**
      * Generates a valid caller reference from given paths regardless its order.
      *
-     * @param array $paths
-     *
      * @return string a md5 representation
      */
     protected function getCallerReference(array $paths)
@@ -206,12 +206,7 @@ class CloudFront implements CDNInterface
         return md5(implode(',', $paths));
     }
 
-    /**
-     * Return a CloudFrontClient.
-     *
-     * @return CloudFrontClient
-     */
-    private function getClient()
+    private function getClient(): CloudFrontClient
     {
         if (!$this->client) {
             $this->client = CloudFrontClient::factory([

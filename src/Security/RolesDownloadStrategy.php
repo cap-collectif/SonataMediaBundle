@@ -19,6 +19,9 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
 use Symfony\Component\Translation\TranslatorInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class RolesDownloadStrategy implements DownloadStrategyInterface
 {
     /**
@@ -37,12 +40,15 @@ class RolesDownloadStrategy implements DownloadStrategyInterface
     protected $translator;
 
     /**
-     * @param TranslatorInterface           $translator
      * @param AuthorizationCheckerInterface $security
      * @param string[]                      $roles
      */
-    public function __construct(TranslatorInterface $translator, AuthorizationCheckerInterface $security, array $roles = [])
+    public function __construct(TranslatorInterface $translator, $security, array $roles = [])
     {
+        if (!$security instanceof AuthorizationCheckerInterface) {
+            throw new \InvalidArgumentException('Argument 2 should be an instance of Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface');
+        }
+
         $this->roles = $roles;
         $this->security = $security;
         $this->translator = $translator;

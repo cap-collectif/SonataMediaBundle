@@ -15,7 +15,6 @@ namespace Sonata\MediaBundle\Provider;
 
 use Buzz\Browser;
 use Gaufrette\Filesystem;
-use Sonata\CoreBundle\Model\Metadata;
 use Sonata\MediaBundle\CDN\CDNInterface;
 use Sonata\MediaBundle\Generator\GeneratorInterface;
 use Sonata\MediaBundle\Metadata\MetadataBuilderInterface;
@@ -23,6 +22,9 @@ use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Thumbnail\ThumbnailInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class YouTubeProvider extends BaseVideoProvider
 {
     /**
@@ -32,15 +34,10 @@ class YouTubeProvider extends BaseVideoProvider
 
     /**
      * @param string                   $name
-     * @param Filesystem               $filesystem
-     * @param CDNInterface             $cdn
-     * @param GeneratorInterface       $pathGenerator
-     * @param ThumbnailInterface       $thumbnail
-     * @param Browser                  $browser
      * @param MetadataBuilderInterface $metadata
      * @param bool                     $html5
      */
-    public function __construct($name, Filesystem $filesystem, CDNInterface $cdn, GeneratorInterface $pathGenerator, ThumbnailInterface $thumbnail, Browser $browser, MetadataBuilderInterface $metadata = null, $html5 = false)
+    public function __construct($name, Filesystem $filesystem, CDNInterface $cdn, GeneratorInterface $pathGenerator, ThumbnailInterface $thumbnail, Browser $browser, ?MetadataBuilderInterface $metadata = null, $html5 = false)
     {
         parent::__construct($name, $filesystem, $cdn, $pathGenerator, $thumbnail, $browser, $metadata);
         $this->html5 = $html5;
@@ -51,7 +48,13 @@ class YouTubeProvider extends BaseVideoProvider
      */
     public function getProviderMetadata()
     {
-        return new Metadata($this->getName(), $this->getName().'.description', false, 'SonataMediaBundle', ['class' => 'fa fa-youtube']);
+        return new Metadata(
+            $this->getName(),
+            $this->getName().'.description',
+            null,
+            'SonataMediaBundle',
+            ['class' => 'fa fa-youtube']
+        );
     }
 
     /**
@@ -167,7 +170,7 @@ class YouTubeProvider extends BaseVideoProvider
 
             // Values: 'allowfullscreen' or empty. Default is 'allowfullscreen'. Setting to empty value disables
             //  the fullscreen button.
-            'allowFullScreen' => '1' == $default_player_url_parameters['fs'] ? true : false,
+            'allowFullScreen' => '1' === $default_player_url_parameters['fs'] ? true : false,
 
             // The allowScriptAccess parameter in the code is needed to allow the player SWF to call
             // functions on the containing HTML page, since the player is hosted on a different domain
@@ -202,7 +205,7 @@ class YouTubeProvider extends BaseVideoProvider
     /**
      * {@inheritdoc}
      */
-    public function updateMetadata(MediaInterface $media, $force = false): void
+    public function updateMetadata(MediaInterface $media, $force = false)
     {
         $url = sprintf('https://www.youtube.com/oembed?url=%s&format=json', $this->getReferenceUrl($media));
 
@@ -238,8 +241,6 @@ class YouTubeProvider extends BaseVideoProvider
     /**
      * Get provider reference url.
      *
-     * @param MediaInterface $media
-     *
      * @return string
      */
     public function getReferenceUrl(MediaInterface $media)
@@ -247,10 +248,7 @@ class YouTubeProvider extends BaseVideoProvider
         return sprintf('https://www.youtube.com/watch?v=%s', $media->getProviderReference());
     }
 
-    /**
-     * @param MediaInterface $media
-     */
-    protected function fixBinaryContent(MediaInterface $media): void
+    protected function fixBinaryContent(MediaInterface $media)
     {
         if (!$media->getBinaryContent()) {
             return;
@@ -268,7 +266,7 @@ class YouTubeProvider extends BaseVideoProvider
     /**
      * {@inheritdoc}
      */
-    protected function doTransform(MediaInterface $media): void
+    protected function doTransform(MediaInterface $media)
     {
         $this->fixBinaryContent($media);
 

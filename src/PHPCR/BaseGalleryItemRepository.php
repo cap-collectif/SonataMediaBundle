@@ -16,7 +16,10 @@ namespace Sonata\MediaBundle\PHPCR;
 use Doctrine\ODM\PHPCR\DocumentRepository;
 use Doctrine\ODM\PHPCR\Id\RepositoryIdInterface;
 
-class BaseGalleryItemRepository extends DocumentRepository implements RepositoryIdInterface
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
+class BaseGalleryHasMediaRepository extends DocumentRepository implements RepositoryIdInterface
 {
     /**
      * @param mixed $document

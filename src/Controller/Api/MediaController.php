@@ -21,6 +21,7 @@ use FOS\RestBundle\Request\ParamFetcherInterface;
 use FOS\RestBundle\View\View as FOSRestView;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Sonata\DatagridBundle\Pager\PagerInterface;
+use Sonata\MediaBundle\Form\Type\ApiMediaType;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Model\MediaManagerInterface;
 use Sonata\MediaBundle\Provider\MediaProviderInterface;
@@ -35,6 +36,8 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
  * Note: Media is plural, medium is singular (at least according to FOSRestBundle route generator).
+ *
+ * @final since sonata-project/media-bundle 3.21.0
  *
  * @author Hugo Briand <briand@ekino.com>
  */
@@ -57,10 +60,6 @@ class MediaController
 
     /**
      * Constructor.
-     *
-     * @param MediaManagerInterface $mediaManager
-     * @param Pool                  $mediaPool
-     * @param FormFactoryInterface  $formFactory
      */
     public function __construct(MediaManagerInterface $mediaManager, Pool $mediaPool, FormFactoryInterface $formFactory)
     {
@@ -83,8 +82,6 @@ class MediaController
      * @QueryParam(name="orderBy", map=true, requirements="ASC|DESC", nullable=true, strict=true, description="Order by array (key is field, value is direction)")
      *
      * @View(serializerGroups={"sonata_api_read"}, serializerEnableMaxDepthChecks=true)
-     *
-     * @param ParamFetcherInterface $paramFetcher
      *
      * @return PagerInterface
      */
@@ -188,9 +185,8 @@ class MediaController
      *  }
      * )
      *
-     * @param int     $id      The media id
-     * @param string  $format  The format
-     * @param Request $request
+     * @param int    $id     The media id
+     * @param string $format The format
      *
      * @return Response
      */
@@ -361,7 +357,7 @@ class MediaController
      */
     protected function getMedium($id = null)
     {
-        $media = $this->mediaManager->findOneBy(['id' => $id]);
+        $media = $this->mediaManager->find($id);
 
         if (null === $media) {
             throw new NotFoundHttpException(sprintf('Media (%d) was not found', $id));
@@ -373,15 +369,11 @@ class MediaController
     /**
      * Write a medium, this method is used by both POST and PUT action methods.
      *
-     * @param Request                $request
-     * @param MediaInterface         $media
-     * @param MediaProviderInterface $provider
-     *
      * @return View|FormInterface
      */
     protected function handleWriteMedium(Request $request, MediaInterface $media, MediaProviderInterface $provider)
     {
-        $form = $this->formFactory->createNamed(null, 'sonata_media_api_form_media', $media, [
+        $form = $this->formFactory->createNamed(null, ApiMediaType::class, $media, [
             'provider_name' => $provider->getName(),
             'csrf_protection' => false,
         ]);

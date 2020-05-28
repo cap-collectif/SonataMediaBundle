@@ -27,6 +27,9 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
  *
  * Useful if you have existing media content and added new formats.
  */
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class RemoveThumbsCommand extends BaseCommand
 {
     /**
@@ -51,7 +54,8 @@ class RemoveThumbsCommand extends BaseCommand
     {
         $this->setName('sonata:media:remove-thumbnails')
             ->setDescription('Remove uploaded image thumbs')
-            ->setDefinition([
+            ->setDefinition(
+                [
                 new InputArgument('providerName', InputArgument::OPTIONAL, 'The provider'),
                 new InputArgument('context', InputArgument::OPTIONAL, 'The context'),
                 new InputArgument('format', InputArgument::OPTIONAL, 'The format (pass `all` to delete all thumbs)'),
@@ -59,7 +63,7 @@ class RemoveThumbsCommand extends BaseCommand
                 new InputOption('batchesLimit', null, InputOption::VALUE_REQUIRED, 'Media batches limit (0 by default)', 0),
                 new InputOption('startOffset', null, InputOption::VALUE_REQUIRED, 'Medias start offset (0 by default)', 0),
             ]
-        );
+            );
     }
 
     /**
@@ -128,12 +132,14 @@ class RemoveThumbsCommand extends BaseCommand
                 $provider->getFilesystem()->clearFileRegister();
             }
 
-            if ($batchesLimit > 0 && $batchCounter == $batchesLimit) {
+            if ($batchesLimit > 0 && $batchCounter === $batchesLimit) {
                 break;
             }
         } while (true);
 
         $this->log("Done (total medias processed: {$totalMediasCount}).");
+
+        return 0;
     }
 
     /**
@@ -173,8 +179,7 @@ class RemoveThumbsCommand extends BaseCommand
     }
 
     /**
-     * @param MediaProviderInterface $provider
-     * @param string                 $context
+     * @param string $context
      *
      * @return string
      */
@@ -203,10 +208,8 @@ class RemoveThumbsCommand extends BaseCommand
     }
 
     /**
-     * @param MediaInterface         $media
-     * @param MediaProviderInterface $provider
-     * @param string                 $context
-     * @param string                 $format
+     * @param string $context
+     * @param string $format
      *
      * @return bool
      */
@@ -221,8 +224,11 @@ class RemoveThumbsCommand extends BaseCommand
 
             $provider->removeThumbnails($media, $format);
         } catch (\Exception $e) {
-            $this->log(sprintf('<error>Unable to remove thumbnails, media: %s - %s </error>',
-                $media->getId(), $e->getMessage()));
+            $this->log(sprintf(
+                '<error>Unable to remove thumbnails, media: %s - %s </error>',
+                $media->getId(),
+                $e->getMessage()
+            ));
 
             return false;
         }
@@ -242,10 +248,7 @@ class RemoveThumbsCommand extends BaseCommand
         }
     }
 
-    /**
-     * @return QuestionHelper
-     */
-    private function getQuestionHelper()
+    private function getQuestionHelper(): QuestionHelper
     {
         return $this->getHelper('question');
     }

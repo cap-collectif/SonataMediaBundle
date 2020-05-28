@@ -150,8 +150,6 @@ interface MediaInterface
 
     /**
      * Set provider_metadata.
-     *
-     * @param array $providerMetadata
      */
     public function setProviderMetadata(array $providerMetadata = []);
 
@@ -263,7 +261,7 @@ interface MediaInterface
     /**
      * Set cdn_flush_identifier.
      *
-     * @param bool $cdnFlushIdentifier
+     * @param string $cdnFlushIdentifier
      */
     public function setCdnFlushIdentifier($cdnFlushIdentifier);
 
@@ -279,7 +277,7 @@ interface MediaInterface
      *
      * @param \DateTime $cdnFlushAt
      */
-    public function setCdnFlushAt(\DateTime $cdnFlushAt = null);
+    public function setCdnFlushAt(?\DateTime $cdnFlushAt = null);
 
     /**
      * Get cdn_flush_at.
@@ -293,7 +291,7 @@ interface MediaInterface
      *
      * @param \DateTime $updatedAt
      */
-    public function setUpdatedAt(\DateTime $updatedAt = null);
+    public function setUpdatedAt(?\DateTime $updatedAt = null);
 
     /**
      * Get updated_at.
@@ -307,7 +305,7 @@ interface MediaInterface
      *
      * @param \DateTime $createdAt
      */
-    public function setCreatedAt(\DateTime $createdAt = null);
+    public function setCreatedAt(?\DateTime $createdAt = null);
 
     /**
      * Get created_at.

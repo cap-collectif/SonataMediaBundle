@@ -17,6 +17,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class MigrateToJsonTypeCommand extends BaseCommand
 {
     /**
@@ -53,5 +56,7 @@ class MigrateToJsonTypeCommand extends BaseCommand
         }
 
         $output->writeln("Migrated $count medias");
+
+        return 0;
     }
 }

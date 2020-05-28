@@ -23,8 +23,9 @@ use Imagine\Image\Box;
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\MediaBundle\CDN\Server;
-use Sonata\MediaBundle\Generator\DefaultGenerator;
+use Sonata\MediaBundle\Generator\IdGenerator;
 use Sonata\MediaBundle\Metadata\MetadataBuilderInterface;
+use Sonata\MediaBundle\Provider\MediaProviderInterface;
 use Sonata\MediaBundle\Provider\VimeoProvider;
 use Sonata\MediaBundle\Resizer\ResizerInterface;
 use Sonata\MediaBundle\Tests\Entity\Media;
@@ -32,36 +33,36 @@ use Sonata\MediaBundle\Thumbnail\FormatThumbnail;
 
 class VimeoProviderTest extends AbstractProviderTest
 {
-    public function getProvider(Browser $browser = null)
+    public function getProvider(?Browser $browser = null): MediaProviderInterface
     {
         if (!$browser) {
             $browser = $this->createMock(Browser::class);
         }
 
         $resizer = $this->createMock(ResizerInterface::class);
-        $resizer->expects($this->any())->method('resize')->will($this->returnValue(true));
-        $resizer->expects($this->any())->method('getBox')->will($this->returnValue(new Box(100, 100)));
+        $resizer->method('resize')->willReturn(true);
+        $resizer->method('getBox')->willReturn(new Box(100, 100));
 
         $adapter = $this->createMock(Adapter::class);
 
         $filesystem = $this->getMockBuilder(Filesystem::class)
-            ->setMethods(['get'])
+            ->onlyMethods(['get'])
             ->setConstructorArgs([$adapter])
             ->getMock();
         $file = $this->getMockBuilder(File::class)
             ->setConstructorArgs(['foo', $filesystem])
             ->getMock();
-        $filesystem->expects($this->any())->method('get')->will($this->returnValue($file));
+        $filesystem->method('get')->willReturn($file);
 
         $cdn = new Server('/uploads/media');
 
-        $generator = new DefaultGenerator();
+        $generator = new IdGenerator();
 
         $thumbnail = new FormatThumbnail('jpg');
 
         $metadata = $this->createMock(MetadataBuilderInterface::class);
 
-        $provider = new VimeoProvider('file', $filesystem, $cdn, $generator, $thumbnail, $browser, $metadata);
+        $provider = new VimeoProvider('vimeo', $filesystem, $cdn, $generator, $thumbnail, $browser, $metadata);
         $provider->setResizer($resizer);
 
         return $provider;
@@ -88,11 +89,11 @@ class VimeoProviderTest extends AbstractProviderTest
     public function testThumbnail(): void
     {
         $response = $this->createMock(AbstractMessage::class);
-        $response->expects($this->once())->method('getContent')->will($this->returnValue('content'));
+        $response->expects($this->once())->method('getContent')->willReturn('content');
 
         $browser = $this->createMock(Browser::class);
 
-        $browser->expects($this->once())->method('get')->will($this->returnValue($response));
+        $browser->expects($this->once())->method('get')->willReturn($response);
 
         $provider = $this->getProvider($browser);
 
@@ -105,7 +106,7 @@ class VimeoProviderTest extends AbstractProviderTest
 
         $media->setId(1023457);
 
-        $this->assertTrue($provider->requireThumbnails($media));
+        $this->assertTrue($provider->requireThumbnails());
 
         $provider->addFormat('big', ['width' => 200, 'height' => 100, 'constraint' => true]);
 
@@ -122,14 +123,13 @@ class VimeoProviderTest extends AbstractProviderTest
         $response->setContent(file_get_contents(__DIR__.'/../fixtures/valid_vimeo.txt'));
 
         $browser = $this->createMock(Browser::class);
-        $browser->expects($this->once())->method('get')->will($this->returnValue($response));
+        $browser->expects($this->once())->method('get')->willReturn($response);
 
         $provider = $this->getProvider($browser);
 
         $provider->addFormat('big', ['width' => 200, 'height' => 100, 'constraint' => true]);
 
         $media = new Media();
-        $media->setContext('default');
         $media->setBinaryContent('BDYAbAtaDzA');
         $media->setId(1023456);
 
@@ -144,13 +144,13 @@ class VimeoProviderTest extends AbstractProviderTest
     /**
      * @dataProvider getTransformWithUrlMedia
      */
-    public function testTransformWithUrl($media): void
+    public function testTransformWithUrl(Media $media): void
     {
         $response = new Response();
         $response->setContent(file_get_contents(__DIR__.'/../fixtures/valid_vimeo.txt'));
 
         $browser = $this->createMock(Browser::class);
-        $browser->expects($this->once())->method('get')->will($this->returnValue($response));
+        $browser->expects($this->once())->method('get')->willReturn($response);
 
         $provider = $this->getProvider($browser);
 
@@ -164,15 +164,13 @@ class VimeoProviderTest extends AbstractProviderTest
         $this->assertSame('012341231', $media->getProviderReference(), '::getProviderReference() is set');
     }
 
-    public function getTransformWithUrlMedia()
+    public function getTransformWithUrlMedia(): array
     {
         $mediaWebsite = new Media();
-        $mediaWebsite->setContext('default');
         $mediaWebsite->setBinaryContent('https://vimeo.com/012341231');
         $mediaWebsite->setId(1023456);
 
         $mediaPlayer = new Media();
-        $mediaPlayer->setContext('default');
         $mediaPlayer->setBinaryContent('https://player.vimeo.com/video/012341231');
         $mediaPlayer->setId(1023456);
 
@@ -182,22 +180,45 @@ class VimeoProviderTest extends AbstractProviderTest
         ];
     }
 
+    public function testGetMetadataException(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Unable to retrieve the video information for :012341231');
+        $this->expectExceptionCode(12);
+
+        $response = new Response();
+        $response->setContent(file_get_contents(__DIR__.'/../fixtures/valid_vimeo.txt'));
+
+        $browser = $this->createMock(Browser::class);
+        $browser->expects($this->once())->method('get')->will($this->throwException(new \RuntimeException('First error on get', 12)));
+
+        $provider = $this->getProvider($browser);
+
+        $provider->addFormat('big', ['width' => 200, 'height' => 100, 'constraint' => true]);
+
+        $media = new Media();
+        $media->setBinaryContent('https://vimeo.com/012341231');
+        $media->setId(1023456);
+
+        $method = new \ReflectionMethod($provider, 'getMetadata');
+        $method->setAccessible(true);
+
+        $method->invokeArgs($provider, [$media, '012341231']);
+    }
+
     public function testForm(): void
     {
         $provider = $this->getProvider();
 
         $admin = $this->createMock(AdminInterface::class);
-        $admin->expects($this->any())
+        $admin
             ->method('trans')
-            ->will($this->returnValue('message'));
+            ->willReturn('message');
 
-        $formMapper = $this->getMockBuilder(FormMapper::class)
-            ->setMethods(['add', 'getAdmin'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $formMapper = $this->createMock(FormMapper::class);
         $formMapper->expects($this->exactly(8))
             ->method('add')
-            ->will($this->returnValue(null));
+            ->willReturn(null);
 
         $provider->buildCreateForm($formMapper);
 
@@ -218,7 +239,7 @@ class VimeoProviderTest extends AbstractProviderTest
 
         $properties = $provider->getHelperProperties($media, 'admin');
 
-        $this->assertInternalType('array', $properties);
+        $this->assertIsArray($properties);
         $this->assertSame(100, $properties['height']);
         $this->assertSame(100, $properties['width']);
     }
@@ -227,6 +248,17 @@ class VimeoProviderTest extends AbstractProviderTest
     {
         $media = new Media();
         $media->setProviderReference('123456');
-        $this->assertEquals('https://vimeo.com/123456', $this->getProvider()->getReferenceUrl($media));
+        $this->assertSame('https://vimeo.com/123456', $this->getProvider()->getReferenceUrl($media));
+    }
+
+    public function testMetadata(): void
+    {
+        $provider = $this->getProvider();
+
+        $this->assertSame('vimeo', $provider->getProviderMetadata()->getTitle());
+        $this->assertSame('vimeo.description', $provider->getProviderMetadata()->getDescription());
+        $this->assertNotNull($provider->getProviderMetadata()->getImage());
+        $this->assertSame('fa fa-vimeo-square', $provider->getProviderMetadata()->getOption('class'));
+        $this->assertSame('SonataMediaBundle', $provider->getProviderMetadata()->getDomain());
     }
 }

@@ -17,6 +17,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class AddMassMediaCommand extends BaseCommand
 {
     /**
@@ -27,7 +30,7 @@ class AddMassMediaCommand extends BaseCommand
     /**
      * {@inheritdoc}
      */
-    public function configure(): void
+    public function configure()
     {
         $this->setName('sonata:media:add-multiple')
             ->setDescription('Add medias in mass into the database')
@@ -42,7 +45,7 @@ class AddMassMediaCommand extends BaseCommand
     /**
      * {@inheritdoc}
      */
-    public function execute(InputInterface $input, OutputInterface $output): void
+    public function execute(InputInterface $input, OutputInterface $output)
     {
         $fp = $this->getFilePointer($input, $output);
         $imported = -1;
@@ -69,12 +72,11 @@ class AddMassMediaCommand extends BaseCommand
         }
 
         $output->writeln('Done!');
+
+        return 0;
     }
 
     /**
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
      * @return resource
      */
     protected function getFilePointer(InputInterface $input, OutputInterface $output)
@@ -87,19 +89,15 @@ class AddMassMediaCommand extends BaseCommand
             throw new \RuntimeException('Please provide a CSV file argument or CSV input stream');
         }
 
-        return fopen($input->getOption('file'), 'rb');
+        return fopen($input->getOption('file'), 'r');
     }
 
-    /**
-     * @param array           $data
-     * @param OutputInterface $output
-     */
-    protected function insertMedia(array $data, OutputInterface $output): void
+    protected function insertMedia(array $data, OutputInterface $output)
     {
         $media = $this->getMediaManager()->create();
 
         foreach ($this->setters as $pos => $name) {
-            \call_user_func([$media, 'set'.$name], $data[$pos]);
+            $media->{'set'.$name}($data[$pos]);
         }
 
         try {
@@ -110,7 +108,7 @@ class AddMassMediaCommand extends BaseCommand
         }
     }
 
-    protected function optimize(): void
+    protected function optimize()
     {
         if ($this->getContainer()->has('doctrine')) {
             $this->getContainer()->get('doctrine')->getManager()->getUnitOfWork()->clear();

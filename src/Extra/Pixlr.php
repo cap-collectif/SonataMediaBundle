@@ -26,6 +26,9 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Templating\EngineInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class Pixlr
 {
     /**
@@ -74,13 +77,8 @@ class Pixlr
     protected $allowEreg;
 
     /**
-     * @param string                $referrer
-     * @param string                $secret
-     * @param Pool                  $pool
-     * @param MediaManagerInterface $mediaManager
-     * @param RouterInterface       $router
-     * @param EngineInterface       $templating
-     * @param ContainerInterface    $container
+     * @param string $referrer
+     * @param string $secret
      */
     public function __construct($referrer, $secret, Pool $pool, MediaManagerInterface $mediaManager, RouterInterface $router, EngineInterface $templating, ContainerInterface $container)
     {
@@ -106,7 +104,7 @@ class Pixlr
      */
     public function editAction($id, $mode)
     {
-        if (!\in_array($mode, ['express', 'editor'])) {
+        if (!\in_array($mode, ['express', 'editor'], true)) {
             throw new NotFoundHttpException('Invalid mode');
         }
 
@@ -148,9 +146,8 @@ class Pixlr
     }
 
     /**
-     * @param Request $request
-     * @param string  $hash
-     * @param string  $id
+     * @param string $hash
+     * @param string $id
      *
      * @return Response
      */
@@ -181,8 +178,6 @@ class Pixlr
     }
 
     /**
-     * @param MediaInterface $media
-     *
      * @return bool
      */
     public function isEditable(MediaInterface $media)
@@ -191,7 +186,7 @@ class Pixlr
             return false;
         }
 
-        return \in_array(strtolower($media->getExtension()), $this->validFormats);
+        return \in_array(strtolower($media->getExtension()), $this->validFormats, true);
     }
 
     /**
@@ -215,24 +210,15 @@ class Pixlr
         ]));
     }
 
-    /**
-     * @param MediaInterface $media
-     *
-     * @return string
-     */
-    private function generateHash(MediaInterface $media)
+    private function generateHash(MediaInterface $media): string
     {
         return sha1($media->getId().$media->getCreatedAt()->format('u').$this->secret);
     }
 
     /**
-     * @param string $id
-     *
      * @throws NotFoundHttpException
-     *
-     * @return MediaInterface
      */
-    private function getMedia($id)
+    private function getMedia(string $id): MediaInterface
     {
         $media = $this->mediaManager->findOneBy(['id' => $id]);
 
@@ -244,14 +230,11 @@ class Pixlr
     }
 
     /**
-     * @param string         $hash
-     * @param MediaInterface $media
-     *
      * @throws NotFoundHttpException
      */
-    private function checkMedia($hash, MediaInterface $media): void
+    private function checkMedia(string $hash, MediaInterface $media)
     {
-        if ($hash != $this->generateHash($media)) {
+        if ($hash !== $this->generateHash($media)) {
             throw new NotFoundHttpException('Invalid hash');
         }
 
@@ -260,12 +243,7 @@ class Pixlr
         }
     }
 
-    /**
-     * @param array $parameters
-     *
-     * @return string
-     */
-    private function buildQuery(array $parameters = [])
+    private function buildQuery(array $parameters = []): string
     {
         $query = [];
         foreach ($parameters as $name => $value) {

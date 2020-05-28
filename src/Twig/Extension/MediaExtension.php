@@ -13,14 +13,20 @@ declare(strict_types=1);
 
 namespace Sonata\MediaBundle\Twig\Extension;
 
-use Sonata\CoreBundle\Model\ManagerInterface;
+use Sonata\Doctrine\Model\ManagerInterface;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Provider\Pool;
 use Sonata\MediaBundle\Twig\TokenParser\MediaTokenParser;
 use Sonata\MediaBundle\Twig\TokenParser\PathTokenParser;
 use Sonata\MediaBundle\Twig\TokenParser\ThumbnailTokenParser;
+use Twig\Environment;
+use Twig\Extension\AbstractExtension;
+use Twig\Extension\InitRuntimeInterface;
 
-class MediaExtension extends \Twig_Extension implements \Twig_Extension_InitRuntimeInterface
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
+class MediaExtension extends AbstractExtension implements InitRuntimeInterface
 {
     /**
      * @var Pool
@@ -38,14 +44,10 @@ class MediaExtension extends \Twig_Extension implements \Twig_Extension_InitRunt
     protected $mediaManager;
 
     /**
-     * @var \Twig_Environment
+     * @var Environment
      */
     protected $environment;
 
-    /**
-     * @param Pool             $mediaService
-     * @param ManagerInterface $mediaManager
-     */
     public function __construct(Pool $mediaService, ManagerInterface $mediaManager)
     {
         $this->mediaService = $mediaService;
@@ -58,16 +60,16 @@ class MediaExtension extends \Twig_Extension implements \Twig_Extension_InitRunt
     public function getTokenParsers()
     {
         return [
-            new MediaTokenParser(\get_called_class()),
-            new ThumbnailTokenParser(\get_called_class()),
-            new PathTokenParser(\get_called_class()),
+            new MediaTokenParser(static::class),
+            new ThumbnailTokenParser(static::class),
+            new PathTokenParser(static::class),
         ];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function initRuntime(\Twig_Environment $environment): void
+    public function initRuntime(Environment $environment)
     {
         $this->environment = $environment;
     }
@@ -83,7 +85,7 @@ class MediaExtension extends \Twig_Extension implements \Twig_Extension_InitRunt
     {
         $media = $this->getMedia($media);
 
-        if (!$media) {
+        if (null === $media) {
             return '';
         }
 
@@ -115,7 +117,7 @@ class MediaExtension extends \Twig_Extension implements \Twig_Extension_InitRunt
     {
         $media = $this->getMedia($media);
 
-        if (!$media) {
+        if (null === $media) {
             return '';
         }
 
@@ -131,10 +133,10 @@ class MediaExtension extends \Twig_Extension implements \Twig_Extension_InitRunt
             'alt' => $media->getName(),
         ];
 
-        if ($format_definition['width']) {
+        if (\is_array($format_definition) && $format_definition['width']) {
             $defaultOptions['width'] = $format_definition['width'];
         }
-        if ($format_definition['height']) {
+        if (\is_array($format_definition) && $format_definition['height']) {
             $defaultOptions['height'] = $format_definition['height'];
         }
 
@@ -150,7 +152,6 @@ class MediaExtension extends \Twig_Extension implements \Twig_Extension_InitRunt
 
     /**
      * @param string $template
-     * @param array  $parameters
      *
      * @return mixed
      */
@@ -195,23 +196,21 @@ class MediaExtension extends \Twig_Extension implements \Twig_Extension_InitRunt
 
     /**
      * @param mixed $media
-     *
-     * @return MediaInterface|null|bool
      */
-    private function getMedia($media)
+    private function getMedia($media): ?MediaInterface
     {
-        if (!$media instanceof MediaInterface && \strlen($media) > 0) {
+        if (!$media instanceof MediaInterface && \strlen((string) $media) > 0) {
             $media = $this->mediaManager->findOneBy([
                 'id' => $media,
             ]);
         }
 
         if (!$media instanceof MediaInterface) {
-            return false;
+            return null;
         }
 
         if (MediaInterface::STATUS_OK !== $media->getProviderStatus()) {
-            return false;
+            return null;
         }
 
         return $media;

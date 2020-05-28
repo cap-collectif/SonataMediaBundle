@@ -14,15 +14,17 @@ declare(strict_types=1);
 namespace Sonata\MediaBundle\Block;
 
 use Sonata\AdminBundle\Form\FormMapper;
+use Sonata\BlockBundle\Meta\Metadata;
 use Sonata\BlockBundle\Model\BlockInterface;
-use Sonata\CoreBundle\Form\Type\ImmutableArrayType;
-use Sonata\CoreBundle\Model\Metadata;
+use Sonata\Form\Type\ImmutableArrayType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
+ * @final since sonata-project/media-bundle 3.21.0
+ *
  * @author Thomas Rabaix <thomas.rabaix@sonata-project.org>
  */
 class FeatureMediaBlockService extends MediaBlockService

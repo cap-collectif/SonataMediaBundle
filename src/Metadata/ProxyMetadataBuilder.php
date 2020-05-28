@@ -19,6 +19,9 @@ use Sonata\MediaBundle\Filesystem\Replicate;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class ProxyMetadataBuilder implements MetadataBuilderInterface
 {
     /**
@@ -29,16 +32,15 @@ class ProxyMetadataBuilder implements MetadataBuilderInterface
     /**
      * NEXT_MAJOR: remove the second parameter $map.
      *
-     * @param ContainerInterface $container
-     * @param array              $map
+     * @param array $map
      */
-    public function __construct(ContainerInterface $container, array $map = null)
+    public function __construct(ContainerInterface $container, ?array $map = null)
     {
         $this->container = $container;
 
         if (null !== $map) {
             @trigger_error(
-                'The "map" parameter is deprecated since version 2.4 and will be removed in 4.0.',
+                'The "map" parameter is deprecated since sonata-project/media-bundle 2.4 and will be removed in 4.0.',
                 E_USER_DEPRECATED
             );
         }
@@ -66,8 +68,7 @@ class ProxyMetadataBuilder implements MetadataBuilderInterface
     }
 
     /**
-     * @param MediaInterface $media
-     * @param string         $filename
+     * @param string $filename
      *
      * @return array|bool
      */
@@ -83,7 +84,7 @@ class ProxyMetadataBuilder implements MetadataBuilderInterface
         }
 
         //for amazon s3
-        if ((!\in_array(AmazonS3::class, $adapterClassNames) && !\in_array(AwsS3::class, $adapterClassNames)) || !$this->container->has('sonata.media.metadata.amazon')) {
+        if ((!\in_array(AmazonS3::class, $adapterClassNames, true) && !\in_array(AwsS3::class, $adapterClassNames, true)) || !$this->container->has('sonata.media.metadata.amazon')) {
             return false;
         }
 

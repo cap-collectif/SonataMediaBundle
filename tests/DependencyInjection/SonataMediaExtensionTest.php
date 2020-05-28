@@ -101,23 +101,19 @@ class SonataMediaExtensionTest extends AbstractExtensionTestCase
     }
 
     /**
-     * @param string $serviceId
-     * @param string $extension
-     * @param string $type
-     *
      * @dataProvider dataAdapter
      */
-    public function testAdapter($serviceId, $extension, $type): void
+    public function testAdapter(string $serviceId, string $extension, string $type): void
     {
         $this->load();
 
         $this->assertContainerBuilderHasService($serviceId);
         if (\extension_loaded($extension)) {
-            $this->isInstanceOf($type, $this->container->get($serviceId));
+            $this->assertInstanceOf($type, $this->container->get($serviceId));
         }
     }
 
-    public function dataAdapter()
+    public function dataAdapter(): array
     {
         return [
             ['sonata.media.adapter.image.gd', 'gd', GdImagine::class],
@@ -140,22 +136,19 @@ class SonataMediaExtensionTest extends AbstractExtensionTestCase
     }
 
     /**
-     * @param $serviceId
-     * @param $type
-     *
      * @dataProvider dataResizer
      */
-    public function testResizer($serviceId, $type): void
+    public function testResizer(string $serviceId, string $type): void
     {
         $this->load();
 
         $this->assertContainerBuilderHasService($serviceId);
         if (\extension_loaded('gd')) {
-            $this->isInstanceOf($type, $this->container->get($serviceId));
+            $this->assertInstanceOf($type, $this->container->get($serviceId));
         }
     }
 
-    public function dataResizer()
+    public function dataResizer(): array
     {
         return [
             ['sonata.media.resizer.simple', SimpleResizer::class],
@@ -167,7 +160,7 @@ class SonataMediaExtensionTest extends AbstractExtensionTestCase
     {
         $this->load();
 
-        $this->assertEquals(
+        $this->assertSame(
             $this->container->getDefinition('sonata.media.security.superadmin_strategy')->getArgument(2),
             ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN']
         );
@@ -175,9 +168,7 @@ class SonataMediaExtensionTest extends AbstractExtensionTestCase
 
     public function testLoadWithSonataAdminCustomConfiguration(): void
     {
-        $fakeContainer = $this->getMockBuilder(ContainerBuilder::class)
-            ->setMethods(['getParameter', 'getExtensionConfig'])
-            ->getMock();
+        $fakeContainer = $this->createMock(ContainerBuilder::class);
 
         $fakeContainer->expects($this->once())
             ->method('getParameter')
@@ -203,29 +194,26 @@ class SonataMediaExtensionTest extends AbstractExtensionTestCase
             $extension->load($configs, $this->container);
         }
 
-        $this->assertEquals(
+        $this->assertSame(
             $this->container->getDefinition('sonata.media.security.superadmin_strategy')->getArgument(2),
             ['ROLE_FOO', 'ROLE_BAR']
         );
     }
 
     /**
-     * @param $configs
-     * @param $args
-     *
      * @dataProvider dataFilesystemConfiguration
      */
-    public function testLoadWithFilesystemConfiguration($configs, $args): void
+    public function testLoadWithFilesystemConfiguration(array $configs, array $args): void
     {
         $this->load($configs);
 
-        $this->assertEquals(
+        $this->assertSame(
             $this->container->getDefinition('sonata.media.adapter.service.s3')->getArgument(0),
             $args
         );
     }
 
-    public function dataFilesystemConfiguration()
+    public function dataFilesystemConfiguration(): array
     {
         return [
             [
@@ -260,18 +248,26 @@ class SonataMediaExtensionTest extends AbstractExtensionTestCase
                     ],
                 ],
                 [
+                    'region' => 'region',
+                    'version' => 'version',
                     'credentials' => [
                         'secret' => 'secret',
                         'key' => 'access',
                     ],
-                    'region' => 'region',
-                    'version' => 'version',
                 ],
             ],
         ];
     }
 
-    protected function getMinimalConfiguration()
+    public function testMediaPool(): void
+    {
+        $this->load();
+
+        $this->assertContainerBuilderHasService('sonata.media.pool');
+        $this->assertContainerBuilderHasAlias('%sonata.media.pool.class%', 'sonata.media.pool');
+    }
+
+    protected function getMinimalConfiguration(): array
     {
         return [
             'default_context' => 'default',
@@ -297,7 +293,7 @@ class SonataMediaExtensionTest extends AbstractExtensionTestCase
     /**
      * {@inheritdoc}
      */
-    protected function getContainerExtensions()
+    protected function getContainerExtensions(): array
     {
         return [
             new SonataMediaExtension(),

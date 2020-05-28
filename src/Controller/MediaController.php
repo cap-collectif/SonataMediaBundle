@@ -22,11 +22,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class MediaController extends Controller
 {
     /**
-     * @param MediaInterface $media
-     *
      * @return MediaProviderInterface
      */
     public function getProvider(MediaInterface $media)
@@ -45,15 +46,14 @@ class MediaController extends Controller
     }
 
     /**
-     * @param Request $request
-     * @param string  $id
-     * @param string  $format
+     * @param string $id
+     * @param string $format
      *
      * @throws NotFoundHttpException
      *
      * @return Response
      */
-    public function downloadAction(Request $request, $id, $format = MediaProviderInterface::FORMAT_REFERENCE)
+    public function downloadAction($id, $format = MediaProviderInterface::FORMAT_REFERENCE)
     {
         $media = $this->getMedia($id);
 
@@ -61,31 +61,28 @@ class MediaController extends Controller
             throw new NotFoundHttpException(sprintf('unable to find the media with the id : %s', $id));
         }
 
-        if (!$this->get('sonata.media.pool')->getDownloadSecurity($media)->isGranted($media, $request)) {
+        if (!$this->get('sonata.media.pool')->getDownloadSecurity($media)->isGranted($media, $this->getCurrentRequest())) {
             throw new AccessDeniedException();
         }
 
         $response = $this->getProvider($media)->getDownloadResponse($media, $format, $this->get('sonata.media.pool')->getDownloadMode($media));
 
         if ($response instanceof BinaryFileResponse) {
-            $response->prepare($request);
+            $response->prepare($this->getCurrentRequest());
         }
-        
-        ob_get_clean();
 
         return $response;
     }
 
     /**
-     * @param Request $request
-     * @param string  $id
-     * @param string  $format
+     * @param string $id
+     * @param string $format
      *
      * @throws NotFoundHttpException
      *
      * @return Response
      */
-    public function viewAction(Request $request, $id, $format = MediaProviderInterface::FORMAT_REFERENCE)
+    public function viewAction($id, $format = MediaProviderInterface::FORMAT_REFERENCE)
     {
         $media = $this->getMedia($id);
 
@@ -93,7 +90,7 @@ class MediaController extends Controller
             throw new NotFoundHttpException(sprintf('unable to find the media with the id : %s', $id));
         }
 
-        if (!$this->get('sonata.media.pool')->getDownloadSecurity($media)->isGranted($media, $request)) {
+        if (!$this->get('sonata.media.pool')->getDownloadSecurity($media)->isGranted($media, $this->getCurrentRequest())) {
             throw new AccessDeniedException();
         }
 
@@ -111,15 +108,14 @@ class MediaController extends Controller
      * optionally saves the image and
      * outputs it to the browser at the same time.
      *
-     * @param Request $request
-     * @param string  $path
-     * @param string  $filter
+     * @param string $path
+     * @param string $filter
      *
      * @return Response
      *
-     * @deprecated since 3.12, to be removed in 4.0.
+     * @deprecated since  sonata-project/media-bundle 3.12, to be removed in 4.0.
      */
-    public function liipImagineFilterAction(Request $request, $path, $filter)
+    public function liipImagineFilterAction($path, $filter)
     {
         @trigger_error(
             'The '.__METHOD__.' method is deprecated since 3.12, to be removed in 4.0.',
@@ -130,7 +126,7 @@ class MediaController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $targetPath = $this->get('liip_imagine.cache.manager')->resolve($request, $path, $filter);
+        $targetPath = $this->get('liip_imagine.cache.manager')->resolve($this->getCurrentRequest(), $path, $filter);
 
         if ($targetPath instanceof Response) {
             return $targetPath;
@@ -151,12 +147,21 @@ class MediaController extends Controller
 
         $image = $this->get('liip_imagine')->open($tmpFile);
 
-        $response = $this->get('liip_imagine.filter.manager')->get($request, $filter, $image, $path);
+        $response = $this->get('liip_imagine.filter.manager')->get($this->getCurrentRequest(), $filter, $image, $path);
 
         if ($targetPath) {
             $response = $this->get('liip_imagine.cache.manager')->store($response, $targetPath, $filter);
         }
 
         return $response;
+    }
+
+    /**
+     * NEXT_MAJOR: Remove this method
+     * Inject the Symfony\Component\HttpFoundation\Request into the actions instead.
+     */
+    private function getCurrentRequest(): Request
+    {
+        return $this->get('request_stack')->getCurrentRequest();
     }
 }

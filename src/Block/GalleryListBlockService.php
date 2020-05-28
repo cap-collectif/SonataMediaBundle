@@ -15,10 +15,10 @@ namespace Sonata\MediaBundle\Block;
 
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\BlockBundle\Block\BlockContextInterface;
-use Sonata\BlockBundle\Block\Service\AbstractAdminBlockService;
+use Sonata\BlockBundle\Block\Service\AbstractBlockService;
+use Sonata\BlockBundle\Meta\Metadata;
 use Sonata\BlockBundle\Model\BlockInterface;
-use Sonata\CoreBundle\Form\Type\ImmutableArrayType;
-use Sonata\CoreBundle\Model\Metadata;
+use Sonata\Form\Type\ImmutableArrayType;
 use Sonata\MediaBundle\Model\GalleryManagerInterface;
 use Sonata\MediaBundle\Provider\Pool;
 use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
@@ -27,8 +27,12 @@ use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Twig\Environment;
 
-class GalleryListBlockService extends AbstractAdminBlockService
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
+class GalleryListBlockService extends AbstractBlockService
 {
     /**
      * @var GalleryManagerInterface
@@ -41,14 +45,13 @@ class GalleryListBlockService extends AbstractAdminBlockService
     protected $pool;
 
     /**
-     * @param string                  $name
-     * @param EngineInterface         $templating
-     * @param GalleryManagerInterface $galleryManager
-     * @param Pool                    $pool
+     * NEXT_MAJOR: Remove `$templating` argument.
+     *
+     * @param Environment|string $twigOrName
      */
-    public function __construct($name, EngineInterface $templating, GalleryManagerInterface $galleryManager, Pool $pool)
+    public function __construct($twigOrName, ?EngineInterface $templating, GalleryManagerInterface $galleryManager, Pool $pool)
     {
-        parent::__construct($name, $templating);
+        parent::__construct($twigOrName, $templating);
 
         $this->galleryManager = $galleryManager;
         $this->pool = $pool;
@@ -122,7 +125,7 @@ class GalleryListBlockService extends AbstractAdminBlockService
     /**
      * {@inheritdoc}
      */
-    public function execute(BlockContextInterface $blockContext, Response $response = null)
+    public function execute(BlockContextInterface $blockContext, ?Response $response = null)
     {
         $context = $blockContext->getBlock()->getSetting('context');
 

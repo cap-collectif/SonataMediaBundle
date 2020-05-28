@@ -13,7 +13,14 @@ declare(strict_types=1);
 
 namespace Sonata\MediaBundle\Twig\Node;
 
-class MediaNode extends \Twig_Node
+use Twig\Compiler;
+use Twig\Node\Expression\AbstractExpression;
+use Twig\Node\Node;
+
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
+class MediaNode extends Node
 {
     /**
      * @var string
@@ -21,14 +28,11 @@ class MediaNode extends \Twig_Node
     protected $extensionName;
 
     /**
-     * @param string                $extensionName
-     * @param \Twig_Node_Expression $media
-     * @param \Twig_Node_Expression $format
-     * @param \Twig_Node_Expression $attributes
-     * @param int                   $lineno
-     * @param string                $tag
+     * @param string $extensionName
+     * @param int    $lineno
+     * @param string $tag
      */
-    public function __construct($extensionName, \Twig_Node_Expression $media, \Twig_Node_Expression $format, \Twig_Node_Expression $attributes, $lineno, $tag = null)
+    public function __construct($extensionName, AbstractExpression $media, AbstractExpression $format, AbstractExpression $attributes, $lineno, $tag = null)
     {
         $this->extensionName = $extensionName;
 
@@ -38,7 +42,7 @@ class MediaNode extends \Twig_Node
     /**
      * {@inheritdoc}
      */
-    public function compile(\Twig_Compiler $compiler): void
+    public function compile(Compiler $compiler)
     {
         $compiler
             ->addDebugInfo($this)

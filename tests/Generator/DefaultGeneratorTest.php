@@ -17,6 +17,9 @@ use PHPUnit\Framework\TestCase;
 use Sonata\MediaBundle\Generator\DefaultGenerator;
 use Sonata\MediaBundle\Tests\Entity\Media;
 
+/**
+ * @group legacy
+ */
 class DefaultGeneratorTest extends TestCase
 {
     public function testProvider(): void

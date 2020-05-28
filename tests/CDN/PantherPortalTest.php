@@ -21,8 +21,7 @@ class PantherPortalTest extends TestCase
     public function testPortal(): void
     {
         $client = $this->createMock(ClientSpy::class);
-        $client->expects($this->any())->method('flush')
-            ->will($this->returnValue('Flush successfully submitted.'));
+        $client->expects($this->exactly(3))->method('flush')->willReturn('Flush successfully submitted.');
 
         $panther = new PantherPortal('/foo', 'login', 'pass', 42);
         $panther->setClient($client);
@@ -42,7 +41,7 @@ class PantherPortalTest extends TestCase
         $this->expectExceptionMessage('Unable to flush : Failed!!');
 
         $client = $this->createMock(ClientSpy::class);
-        $client->expects($this->exactly(1))->method('flush')->will($this->returnValue('Failed!!'));
+        $client->expects($this->once())->method('flush')->willReturn('Failed!!');
 
         $panther = new PantherPortal('/foo', 'login', 'pass', 42);
         $panther->setClient($client);
@@ -51,10 +50,10 @@ class PantherPortalTest extends TestCase
     }
 }
 
-class ClientSpy
+class ClientSpy extends \SoapClient
 {
-    public function flush()
+    public function flush(): string
     {
-        return 'flushed';
+        return 'hello';
     }
 }

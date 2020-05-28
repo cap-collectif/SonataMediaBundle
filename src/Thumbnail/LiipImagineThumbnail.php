@@ -18,10 +18,13 @@ use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Provider\MediaProviderInterface;
 use Symfony\Component\Routing\RouterInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class LiipImagineThumbnail implements ThumbnailInterface
 {
     /**
-     * @deprecated Since version 3.3, will be removed in 4.0.
+     * @deprecated since sonata-project/media-bundle 3.3, will be removed in 4.0.
      *
      * @var RouterInterface
      */

@@ -20,15 +20,14 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * GlobalVariables.
  *
+ * @final since sonata-project/media-bundle 3.21.0
+ *
  * @author Thomas Rabaix <thomas.rabaix@sonata-project.org>
  */
 class GlobalVariables
 {
     protected $container;
 
-    /**
-     * @param ContainerInterface $container
-     */
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;

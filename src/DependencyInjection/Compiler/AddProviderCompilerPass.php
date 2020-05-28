@@ -21,6 +21,8 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
+ * @final since sonata-project/media-bundle 3.21.0
+ *
  * @author Thomas Rabaix <thomas.rabaix@sonata-project.org>
  */
 class AddProviderCompilerPass implements CompilerPassInterface
@@ -28,7 +30,7 @@ class AddProviderCompilerPass implements CompilerPassInterface
     /**
      * {@inheritdoc}
      */
-    public function process(ContainerBuilder $container): void
+    public function process(ContainerBuilder $container)
     {
         $config = $this->getExtensionConfig($container);
 
@@ -50,8 +52,6 @@ class AddProviderCompilerPass implements CompilerPassInterface
     /**
      * NEXT_MAJOR: Remove this method.
      *
-     * @param ContainerBuilder $container
-     *
      * @return array
      */
     public function fixSettings(ContainerBuilder $container)
@@ -64,10 +64,7 @@ class AddProviderCompilerPass implements CompilerPassInterface
         return $this->getExtensionConfig($container);
     }
 
-    /**
-     * @param ContainerBuilder $container
-     */
-    public function attachProviders(ContainerBuilder $container): void
+    public function attachProviders(ContainerBuilder $container)
     {
         $pool = $container->getDefinition('sonata.media.pool');
         foreach ($container->findTaggedServiceIds('sonata.media.provider') as $id => $attributes) {
@@ -75,15 +72,11 @@ class AddProviderCompilerPass implements CompilerPassInterface
         }
     }
 
-    /**
-     * @param ContainerBuilder $container
-     * @param array            $settings
-     */
-    public function attachArguments(ContainerBuilder $container, array $settings): void
+    public function attachArguments(ContainerBuilder $container, array $settings)
     {
         foreach ($container->findTaggedServiceIds('sonata.media.provider') as $id => $attributes) {
             foreach ($settings['providers'] as $name => $config) {
-                if ($config['service'] == $id) {
+                if ($config['service'] === $id) {
                     $definition = $container->getDefinition($id);
 
                     $definition
@@ -103,11 +96,8 @@ class AddProviderCompilerPass implements CompilerPassInterface
 
     /**
      * Define the default settings to the config array.
-     *
-     * @param ContainerBuilder $container
-     * @param array            $settings
      */
-    public function applyFormats(ContainerBuilder $container, array $settings): void
+    public function applyFormats(ContainerBuilder $container, array $settings)
     {
         foreach ($settings['contexts'] as $name => $context) {
             // add the different related formats
@@ -117,8 +107,9 @@ class AddProviderCompilerPass implements CompilerPassInterface
                 foreach ($context['formats'] as $format => $config) {
                     $config['quality'] = $config['quality'] ?? 80;
                     $config['format'] = $config['format'] ?? 'jpg';
-                    $config['height'] = $config['height'] ?? false;
+                    $config['height'] = $config['height'] ?? null;
                     $config['constraint'] = $config['constraint'] ?? true;
+                    $config['resizer'] = $config['resizer'] ?? false;
 
                     $formatName = sprintf('%s_%s', $name, $format);
                     $definition->addMethodCall('addFormat', [$formatName, $config]);
@@ -127,12 +118,7 @@ class AddProviderCompilerPass implements CompilerPassInterface
         }
     }
 
-    /**
-     * @param ContainerBuilder $container
-     *
-     * @return array
-     */
-    private function getExtensionConfig(ContainerBuilder $container)
+    private function getExtensionConfig(ContainerBuilder $container): array
     {
         $config = $container->getExtensionConfig('sonata_media');
         $config = $container->getParameterBag()->resolveValue($config);

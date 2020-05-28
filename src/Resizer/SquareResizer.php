@@ -26,10 +26,14 @@ use Sonata\MediaBundle\Model\MediaInterface;
  * smaller size. For example, if width is 100 and height 80; the generated image
  * will be 80x80.
  *
+ * @final since sonata-project/media-bundle 3.21.0
+ *
  * @author Edwin Ibarra <edwines@feniaz.com>
  */
 class SquareResizer implements ResizerInterface
 {
+    use ImagineCompatibleResizerTrait;
+
     /**
      * @var ImagineInterface
      */
@@ -46,14 +50,12 @@ class SquareResizer implements ResizerInterface
     protected $metadata;
 
     /**
-     * @param ImagineInterface         $adapter
-     * @param string                   $mode
-     * @param MetadataBuilderInterface $metadata
+     * @param string $mode
      */
     public function __construct(ImagineInterface $adapter, $mode, MetadataBuilderInterface $metadata)
     {
         $this->adapter = $adapter;
-        $this->mode = $mode;
+        $this->mode = $this->convertMode($mode);
         $this->metadata = $metadata;
     }
 
@@ -85,7 +87,7 @@ class SquareResizer implements ResizerInterface
         $image = $this->adapter->load($in->getContent());
         $size = $media->getBox();
 
-        if (null != $settings['height']) {
+        if (null !== $settings['height']) {
             if ($size->getHeight() > $size->getWidth()) {
                 $higher = $size->getHeight();
                 $lower = $size->getWidth();
@@ -97,7 +99,7 @@ class SquareResizer implements ResizerInterface
             $crop = $higher - $lower;
 
             if ($crop > 0) {
-                $point = $higher == $size->getHeight() ? new Point(0, 0) : new Point($crop / 2, 0);
+                $point = $higher === $size->getHeight() ? new Point(0, 0) : new Point($crop / 2, 0);
                 $image->crop($point, new Box($lower, $lower));
                 $size = $image->getSize();
             }
@@ -123,7 +125,7 @@ class SquareResizer implements ResizerInterface
     {
         $size = $media->getBox();
 
-        if (null != $settings['height']) {
+        if (null !== $settings['height']) {
             if ($size->getHeight() > $size->getWidth()) {
                 $higher = $size->getHeight();
                 $lower = $size->getWidth();

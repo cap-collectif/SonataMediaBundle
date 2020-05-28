@@ -22,6 +22,9 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *
  * To learn more see {@link http://symfony.com/doc/current/cookbook/bundles/extension.html#cookbook-bundles-extension-config-class}
  */
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class Configuration implements ConfigurationInterface
 {
     /**
@@ -34,8 +37,9 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
-        $node = $treeBuilder->root('sonata_media');
+        $treeBuilder = new TreeBuilder('sonata_media');
+
+        $node = $treeBuilder->getRootNode();
 
         $node
             ->children()
@@ -60,7 +64,7 @@ class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('width')->defaultValue(200)->end()
-                        ->scalarNode('height')->defaultValue(false)->end()
+                        ->scalarNode('height')->defaultValue(null)->end()
                         ->scalarNode('quality')->defaultValue(90)->end()
                         ->scalarNode('format')->defaultValue('jpg')->end()
                         ->scalarNode('constraint')->defaultValue(true)->end()
@@ -82,9 +86,6 @@ class Configuration implements ConfigurationInterface
         return $treeBuilder;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addContextsSection(ArrayNodeDefinition $node): void
     {
         $node
@@ -109,11 +110,18 @@ class Configuration implements ConfigurationInterface
                                 ->useAttributeAsKey('id')
                                 ->prototype('array')
                                     ->children()
-                                        ->scalarNode('width')->defaultValue(false)->end()
-                                        ->scalarNode('height')->defaultValue(false)->end()
+                                        ->scalarNode('width')->defaultValue(null)->end()
+                                        ->scalarNode('height')->defaultValue(null)->end()
                                         ->scalarNode('quality')->defaultValue(80)->end()
                                         ->scalarNode('format')->defaultValue('jpg')->end()
                                         ->scalarNode('constraint')->defaultValue(true)->end()
+                                        ->scalarNode('resizer')->defaultNull()->end()
+                                        ->arrayNode('resizer_options')
+                                            ->info('options directly passed to selected resizer. e.g. {use_crop: true, crop_gravity: center}')
+                                            ->defaultValue([])
+                                            ->useAttributeAsKey('name')
+                                            ->prototype('scalar')
+                                        ->end()
                                     ->end()
                                 ->end()
                             ->end()
@@ -124,9 +132,6 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addCdnSection(ArrayNodeDefinition $node): void
     {
         $node
@@ -176,9 +181,6 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addFilesystemSection(ArrayNodeDefinition $node): void
     {
         $node
@@ -300,9 +302,6 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addProvidersSection(ArrayNodeDefinition $node): void
     {
         $node
@@ -411,9 +410,6 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addExtraSection(ArrayNodeDefinition $node): void
     {
         $node
@@ -431,9 +427,6 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addModelSection(ArrayNodeDefinition $node): void
     {
         $node
@@ -443,18 +436,14 @@ class Configuration implements ConfigurationInterface
                     ->children()
                         ->scalarNode('media')->defaultValue('Application\\Sonata\\MediaBundle\\Entity\\Media')->end()
                         ->scalarNode('gallery')->defaultValue('Application\\Sonata\\MediaBundle\\Entity\\Gallery')->end()
-                        ->scalarNode('gallery_item')->defaultValue('Application\\Sonata\\MediaBundle\\Entity\\GalleryItem')->end()
+                        ->scalarNode('gallery_has_media')->defaultValue('Application\\Sonata\\MediaBundle\\Entity\\GalleryHasMedia')->end()
                         ->scalarNode('category')->defaultValue('Application\\Sonata\\ClassificationBundle\\Entity\\Category')->end()
-                        ->end()
                     ->end()
                 ->end()
             ->end()
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addBuzzSection(ArrayNodeDefinition $node): void
     {
         $node
@@ -478,9 +467,6 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addResizerSection(ArrayNodeDefinition $node): void
     {
         $node
@@ -512,9 +498,6 @@ class Configuration implements ConfigurationInterface
         ;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addAdapterSection(ArrayNodeDefinition $node): void
     {
         $node

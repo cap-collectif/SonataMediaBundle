@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Sonata\MediaBundle\Provider;
 
 use Gaufrette\Filesystem;
-use Sonata\CoreBundle\Model\Metadata;
 use Sonata\CoreBundle\Validator\ErrorElement;
 use Sonata\MediaBundle\CDN\CDNInterface;
 use Sonata\MediaBundle\Generator\GeneratorInterface;
@@ -65,11 +64,12 @@ abstract class BaseProvider implements MediaProviderInterface
     protected $name;
 
     /**
-     * @param string             $name
-     * @param Filesystem         $filesystem
-     * @param CDNInterface       $cdn
-     * @param GeneratorInterface $pathGenerator
-     * @param ThumbnailInterface $thumbnail
+     * @var MediaInterface[]
+     */
+    private $clones = [];
+
+    /**
+     * @param string $name
      */
     public function __construct($name, Filesystem $filesystem, CDNInterface $cdn, GeneratorInterface $pathGenerator, ThumbnailInterface $thumbnail)
     {
@@ -93,16 +93,13 @@ abstract class BaseProvider implements MediaProviderInterface
         $this->flushCdn($media);
     }
 
-    /**
-     * @param MediaInterface $media
-     */
-    public function flushCdn(MediaInterface $media): void
+    public function flushCdn(MediaInterface $media)
     {
         if ($media->getId() && $this->requireThumbnails() && !$media->getCdnIsFlushable()) {
             $flushPaths = [];
             foreach ($this->getFormats() as $format => $settings) {
                 if (MediaProviderInterface::FORMAT_ADMIN === $format ||
-                    substr($format, 0, \strlen($media->getContext())) === $media->getContext()) {
+                    substr($format, 0, \strlen((string) $media->getContext())) === $media->getContext()) {
                     $flushPaths[] = $this->getFilesystem()->get($this->generatePrivateUrl($media, $format), true)->getKey();
                 }
             }
@@ -118,7 +115,7 @@ abstract class BaseProvider implements MediaProviderInterface
     /**
      * {@inheritdoc}
      */
-    public function addFormat($name, $format): void
+    public function addFormat($name, $format)
     {
         $this->formats[$name] = $format;
     }
@@ -142,7 +139,7 @@ abstract class BaseProvider implements MediaProviderInterface
     /**
      * {@inheritdoc}
      */
-    public function generateThumbnails(MediaInterface $media): void
+    public function generateThumbnails(MediaInterface $media)
     {
         $this->thumbnail->generate($this, $media);
     }
@@ -150,7 +147,7 @@ abstract class BaseProvider implements MediaProviderInterface
     /**
      * {@inheritdoc}
      */
-    public function removeThumbnails(MediaInterface $media, $formats = null): void
+    public function removeThumbnails(MediaInterface $media, $formats = null)
     {
         $this->thumbnail->delete($this, $media, $formats);
     }
@@ -169,7 +166,7 @@ abstract class BaseProvider implements MediaProviderInterface
         }
 
         $baseName = $media->getContext().'_';
-        if (substr($format, 0, \strlen($baseName)) == $baseName) {
+        if (substr($format, 0, \strlen($baseName)) === $baseName) {
             return $format;
         }
 
@@ -181,14 +178,17 @@ abstract class BaseProvider implements MediaProviderInterface
      */
     public function getProviderMetadata()
     {
-        return new Metadata($this->getName(), $this->getName().'.description', false, 'SonataMediaBundle', ['class' => 'fa fa-file']);
+        return new Metadata($this->getName(), $this->getName().'.description', null, 'SonataMediaBundle', ['class' => 'fa fa-file']);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function preRemove(MediaInterface $media): void
+    public function preRemove(MediaInterface $media)
     {
+        $hash = spl_object_hash($media);
+        $this->clones[$hash] = clone $media;
+
         if ($this->requireThumbnails()) {
             $this->thumbnail->delete($this, $media);
         }
@@ -197,8 +197,15 @@ abstract class BaseProvider implements MediaProviderInterface
     /**
      * {@inheritdoc}
      */
-    public function postRemove(MediaInterface $media): void
+    public function postRemove(MediaInterface $media)
     {
+        $hash = spl_object_hash($media);
+
+        if (isset($this->clones[$hash])) {
+            $media = $this->clones[$hash];
+            unset($this->clones[$hash]);
+        }
+
         $path = $this->getReferenceImage($media);
 
         if ($this->getFilesystem()->has($path)) {
@@ -225,7 +232,7 @@ abstract class BaseProvider implements MediaProviderInterface
     /**
      * {@inheritdoc}
      */
-    public function setName($name): void
+    public function setName($name)
     {
         $this->name = $name;
     }
@@ -241,7 +248,7 @@ abstract class BaseProvider implements MediaProviderInterface
     /**
      * {@inheritdoc}
      */
-    public function setTemplates(array $templates): void
+    public function setTemplates(array $templates)
     {
         $this->templates = $templates;
     }
@@ -297,7 +304,7 @@ abstract class BaseProvider implements MediaProviderInterface
     /**
      * {@inheritdoc}
      */
-    public function setResizer(ResizerInterface $resizer): void
+    public function setResizer(ResizerInterface $resizer)
     {
         $this->resizer = $resizer;
     }
@@ -305,7 +312,7 @@ abstract class BaseProvider implements MediaProviderInterface
     /**
      * {@inheritdoc}
      */
-    public function prePersist(MediaInterface $media): void
+    public function prePersist(MediaInterface $media)
     {
         $media->setCreatedAt(new \DateTime());
         $media->setUpdatedAt(new \DateTime());
@@ -314,7 +321,7 @@ abstract class BaseProvider implements MediaProviderInterface
     /**
      * {@inheritdoc}
      */
-    public function preUpdate(MediaInterface $media): void
+    public function preUpdate(MediaInterface $media)
     {
         $media->setUpdatedAt(new \DateTime());
     }
@@ -322,12 +329,9 @@ abstract class BaseProvider implements MediaProviderInterface
     /**
      * {@inheritdoc}
      */
-    public function validate(ErrorElement $errorElement, MediaInterface $media): void
+    public function validate(ErrorElement $errorElement, MediaInterface $media)
     {
     }
 
-    /**
-     * @param MediaInterface $media
-     */
     abstract protected function doTransform(MediaInterface $media);
 }

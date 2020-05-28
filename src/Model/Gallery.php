@@ -53,9 +53,9 @@ abstract class Gallery implements GalleryInterface, GalleryMediaCollectionInterf
     protected $defaultFormat = MediaProviderInterface::FORMAT_REFERENCE;
 
     /**
-     * @var GalleryItemInterface[]|Collection
+     * @var GalleryHasMediaInterface[]|Collection
      */
-    protected $galleryItems;
+    protected $galleryHasMedias;
 
     /**
      * {@inheritdoc}
@@ -68,7 +68,7 @@ abstract class Gallery implements GalleryInterface, GalleryMediaCollectionInterf
     /**
      * {@inheritdoc}
      */
-    public function setName($name): void
+    public function setName($name)
     {
         $this->name = $name;
     }
@@ -84,7 +84,7 @@ abstract class Gallery implements GalleryInterface, GalleryMediaCollectionInterf
     /**
      * {@inheritdoc}
      */
-    public function setEnabled($enabled): void
+    public function setEnabled($enabled)
     {
         $this->enabled = $enabled;
     }
@@ -100,7 +100,7 @@ abstract class Gallery implements GalleryInterface, GalleryMediaCollectionInterf
     /**
      * {@inheritdoc}
      */
-    public function setUpdatedAt(\DateTime $updatedAt = null): void
+    public function setUpdatedAt(?\DateTime $updatedAt = null)
     {
         $this->updatedAt = $updatedAt;
     }
@@ -116,7 +116,7 @@ abstract class Gallery implements GalleryInterface, GalleryMediaCollectionInterf
     /**
      * {@inheritdoc}
      */
-    public function setCreatedAt(\DateTime $createdAt = null): void
+    public function setCreatedAt(?\DateTime $createdAt = null)
     {
         $this->createdAt = $createdAt;
     }
@@ -132,7 +132,7 @@ abstract class Gallery implements GalleryInterface, GalleryMediaCollectionInterf
     /**
      * {@inheritdoc}
      */
-    public function setDefaultFormat($defaultFormat): void
+    public function setDefaultFormat($defaultFormat)
     {
         $this->defaultFormat = $defaultFormat;
     }
@@ -148,37 +148,61 @@ abstract class Gallery implements GalleryInterface, GalleryMediaCollectionInterf
     /**
      * {@inheritdoc}
      */
-    public function setGalleryItems($galleryItems): void
+    public function setGalleryHasMedias($galleryHasMedias)
     {
-        $this->galleryItems = new ArrayCollection();
+        $this->galleryHasMedias = new ArrayCollection();
 
-        foreach ($galleryItems as $galleryItem) {
-            $this->addGalleryItem($galleryItem);
+        foreach ($galleryHasMedias as $galleryHasMedia) {
+            $this->addGalleryHasMedia($galleryHasMedia);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getGalleryItems()
+    public function getGalleryHasMedias()
     {
-        return $this->galleryItems;
+        return $this->galleryHasMedias;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function addGalleryItem(GalleryItemInterface $galleryItem): void
+    public function addGalleryHasMedia(GalleryHasMediaInterface $galleryHasMedia)
     {
-        $galleryItem->setGallery($this);
+        $galleryHasMedia->setGallery($this);
 
-        $this->galleryItems[] = $galleryItem;
+        $this->galleryHasMedias[] = $galleryHasMedia;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function setContext($context): void
+    public function removeGalleryHasMedia(GalleryHasMediaInterface $galleryHasMedia)
+    {
+        $this->galleryHasMedias->removeElement($galleryHasMedia);
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @deprecated use addGalleryHasMedia method instead
+     * NEXT_MAJOR: remove this method with the next major release
+     */
+    public function addGalleryHasMedias(GalleryHasMediaInterface $galleryHasMedia)
+    {
+        @trigger_error(
+            'The '.__METHOD__.' is deprecated and will be removed with next major release.'
+            .'Use `addGalleryHasMedia` method instead.',
+            E_USER_DEPRECATED
+        );
+        $this->addGalleryHasMedia($galleryHasMedia);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setContext($context)
     {
         $this->context = $context;
     }
@@ -189,5 +213,26 @@ abstract class Gallery implements GalleryInterface, GalleryMediaCollectionInterf
     public function getContext()
     {
         return $this->context;
+    }
+
+    /**
+     * Reorders $galleryHasMedia items based on their position.
+     */
+    public function reorderGalleryHasMedia()
+    {
+        if ($this->getGalleryHasMedias() && $this->getGalleryHasMedias() instanceof \IteratorAggregate) {
+            // reorder
+            $iterator = $this->getGalleryHasMedias()->getIterator();
+
+            $iterator->uasort(static function ($a, $b) {
+                if ($a->getPosition() === $b->getPosition()) {
+                    return 0;
+                }
+
+                return $a->getPosition() > $b->getPosition() ? 1 : -1;
+            });
+
+            $this->setGalleryHasMedias($iterator);
+        }
     }
 }

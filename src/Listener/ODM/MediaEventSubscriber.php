@@ -17,6 +17,9 @@ use Doctrine\Common\EventArgs;
 use Doctrine\ODM\MongoDB\Events;
 use Sonata\MediaBundle\Listener\BaseMediaEventSubscriber;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class MediaEventSubscriber extends BaseMediaEventSubscriber
 {
     /**

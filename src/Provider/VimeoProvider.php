@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace Sonata\MediaBundle\Provider;
 
-use Sonata\CoreBundle\Model\Metadata;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class VimeoProvider extends BaseVideoProvider
 {
     /**
@@ -80,13 +82,19 @@ class VimeoProvider extends BaseVideoProvider
      */
     public function getProviderMetadata()
     {
-        return new Metadata($this->getName(), $this->getName().'.description', false, 'SonataMediaBundle', ['class' => 'fa fa-vimeo-square']);
+        return new Metadata(
+            $this->getName(),
+            $this->getName().'.description',
+            null,
+            'SonataMediaBundle',
+            ['class' => 'fa fa-vimeo-square']
+        );
     }
 
     /**
      * {@inheritdoc}
      */
-    public function updateMetadata(MediaInterface $media, $force = false): void
+    public function updateMetadata(MediaInterface $media, $force = false)
     {
         $url = sprintf('https://vimeo.com/api/oembed.json?url=%s', $this->getReferenceUrl($media));
 
@@ -126,8 +134,6 @@ class VimeoProvider extends BaseVideoProvider
     /**
      * Get provider reference url.
      *
-     * @param MediaInterface $media
-     *
      * @return string
      */
     public function getReferenceUrl(MediaInterface $media)
@@ -135,10 +141,7 @@ class VimeoProvider extends BaseVideoProvider
         return sprintf('https://vimeo.com/%s', $media->getProviderReference());
     }
 
-    /**
-     * @param MediaInterface $media
-     */
-    protected function fixBinaryContent(MediaInterface $media): void
+    protected function fixBinaryContent(MediaInterface $media)
     {
         if (!$media->getBinaryContent()) {
             return;
@@ -152,7 +155,7 @@ class VimeoProvider extends BaseVideoProvider
     /**
      * {@inheritdoc}
      */
-    protected function doTransform(MediaInterface $media): void
+    protected function doTransform(MediaInterface $media)
     {
         $this->fixBinaryContent($media);
 

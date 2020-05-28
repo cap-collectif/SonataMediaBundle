@@ -29,11 +29,11 @@ class RolesDownloadStrategyTest extends TestCase
         $translator = $this->createMock(TranslatorInterface::class);
         $security = $this->createMock(AuthorizationCheckerInterface::class);
 
-        $security->expects($this->any())
+        $security
             ->method('isGranted')
-            ->will($this->returnCallback(function (array $roles) {
-                return \in_array('ROLE_ADMIN', $roles);
-            }));
+            ->willReturnCallback(static function (array $roles) {
+                return \in_array('ROLE_ADMIN', $roles, true);
+            });
 
         $strategy = new RolesDownloadStrategy($translator, $security, ['ROLE_ADMIN']);
         $this->assertTrue($strategy->isGranted($media, $request));
@@ -46,11 +46,11 @@ class RolesDownloadStrategyTest extends TestCase
         $translator = $this->createMock(TranslatorInterface::class);
         $security = $this->createMock(AuthorizationCheckerInterface::class);
 
-        $security->expects($this->any())
+        $security
             ->method('isGranted')
-            ->will($this->returnCallback(function (array $roles) {
-                return \in_array('FOO', $roles);
-            }));
+            ->willReturnCallback(static function (array $roles): bool {
+                return \in_array('FOO', $roles, true);
+            });
 
         $strategy = new RolesDownloadStrategy($translator, $security, ['ROLE_ADMIN']);
         $this->assertFalse($strategy->isGranted($media, $request));

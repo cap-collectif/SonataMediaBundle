@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace Sonata\MediaBundle\Serializer;
 
-use Sonata\CoreBundle\Serializer\BaseSerializerHandler;
+use Sonata\Serializer\BaseSerializerHandler;
 
 /**
+ * @final since sonata-project/media-bundle 3.21.0
+ *
  * @author Sylvain Deloux <sylvain.deloux@ekino.com>
  */
 class GallerySerializerHandler extends BaseSerializerHandler

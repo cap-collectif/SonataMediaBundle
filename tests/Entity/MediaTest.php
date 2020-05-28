@@ -15,7 +15,7 @@ namespace Sonata\MediaBundle\Tests\Entity;
 
 use PHPUnit\Framework\TestCase;
 use Sonata\ClassificationBundle\Model\CategoryInterface;
-use Sonata\MediaBundle\Tests\Controller\EntityWithGetId;
+use Sonata\MediaBundle\Tests\Fixtures\EntityWithGetId;
 
 class MediaTest extends TestCase
 {
@@ -27,14 +27,14 @@ class MediaTest extends TestCase
 
         $this->assertSame($media->getMetadataValue('thumbnail_url'), 'http://pasloin.com/thumb.png', '::getMetadataValue() return the good value');
         $this->assertSame($media->getMetadataValue('thumbnail_url1', 'default'), 'default', '::getMetadataValue() return the default');
-        $this->assertSame($media->getMetadataValue('thumbnail_url1'), null, '::getMetadataValue() return the null value');
+        $this->assertNull($media->getMetadataValue('thumbnail_url1'), '::getMetadataValue() return the null value');
     }
 
     public function testStatusList(): void
     {
         $status = Media::getStatusList();
 
-        $this->assertInternalType('array', $status);
+        $this->assertIsArray($status);
     }
 
     public function testSetGet(): void

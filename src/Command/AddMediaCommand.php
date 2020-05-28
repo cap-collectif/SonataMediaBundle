@@ -18,6 +18,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class AddMediaCommand extends BaseCommand
 {
     /**
@@ -28,7 +31,7 @@ class AddMediaCommand extends BaseCommand
     /**
      * NEXT_MAJOR: remove this property.
      *
-     * @deprecated This property is deprecated since version 2.4 and will be removed in 4.0
+     * @deprecated This property is deprecated since sonata-project/media-bundle 2.4 and will be removed in 4.0
      */
     protected $output;
 
@@ -86,5 +89,7 @@ class AddMediaCommand extends BaseCommand
         $this->getMediaManager()->save($media, $context, $provider);
 
         $output->writeln('done!');
+
+        return 0;
     }
 }

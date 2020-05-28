@@ -17,6 +17,9 @@ use PHPUnit\Framework\TestCase;
 use Sonata\MediaBundle\Generator\PHPCRGenerator;
 use Sonata\MediaBundle\Tests\Entity\Media;
 
+/**
+ * @group legacy
+ */
 class PHPCRGeneratorTest extends TestCase
 {
     public function testPHPCRGenerator(): void

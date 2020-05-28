@@ -17,26 +17,29 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Form\Type\ModelListType;
 use Sonata\BlockBundle\Block\BlockContextInterface;
-use Sonata\BlockBundle\Block\Service\AbstractAdminBlockService;
+use Sonata\BlockBundle\Block\Service\AbstractBlockService;
+use Sonata\BlockBundle\Meta\Metadata;
 use Sonata\BlockBundle\Model\BlockInterface;
-use Sonata\CoreBundle\Form\Type\ImmutableArrayType;
-use Sonata\CoreBundle\Model\ManagerInterface;
-use Sonata\CoreBundle\Model\Metadata;
+use Sonata\Doctrine\Model\ManagerInterface;
+use Sonata\Form\Type\ImmutableArrayType;
 use Sonata\MediaBundle\Admin\BaseMediaAdmin;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Provider\Pool;
+use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Templating\EngineInterface;
+use Twig\Environment;
 
 /**
+ * @final since sonata-project/media-bundle 3.21.0
+ *
  * @author Thomas Rabaix <thomas.rabaix@sonata-project.org>
  */
-class MediaBlockService extends AbstractAdminBlockService
+class MediaBlockService extends AbstractBlockService
 {
     /**
      * @var BaseMediaAdmin
@@ -49,14 +52,22 @@ class MediaBlockService extends AbstractAdminBlockService
     protected $mediaManager;
 
     /**
-     * @param string             $name
-     * @param EngineInterface    $templating
-     * @param ContainerInterface $container
-     * @param ManagerInterface   $mediaManager
+     * @var ContainerInterface
      */
-    public function __construct($name, EngineInterface $templating, ContainerInterface $container, ManagerInterface $mediaManager)
-    {
-        parent::__construct($name, $templating);
+    private $container;
+
+    /**
+     * NEXT_MAJOR: Remove `$templating` argument.
+     *
+     * @param Environment|string $twigOrName
+     */
+    public function __construct(
+        $twigOrName,
+        ?EngineInterface $templating,
+        ContainerInterface $container,
+        ManagerInterface $mediaManager
+    ) {
+        parent::__construct($twigOrName, $templating);
 
         $this->mediaManager = $mediaManager;
         $this->container = $container;
@@ -143,14 +154,14 @@ class MediaBlockService extends AbstractAdminBlockService
     /**
      * {@inheritdoc}
      */
-    public function execute(BlockContextInterface $blockContext, Response $response = null)
+    public function execute(BlockContextInterface $blockContext, ?Response $response = null)
     {
         // make sure we have a valid format
         $media = $blockContext->getBlock()->getSetting('mediaId');
         if ($media instanceof MediaInterface) {
             $choices = $this->getFormatChoices($media);
 
-            if (!array_key_exists($blockContext->getSetting('format'), $choices)) {
+            if (!\array_key_exists($blockContext->getSetting('format'), $choices)) {
                 $blockContext->setSetting('format', key($choices));
             }
         }
@@ -203,11 +214,9 @@ class MediaBlockService extends AbstractAdminBlockService
     }
 
     /**
-     * @param MediaInterface|null $media
-     *
      * @return array
      */
-    protected function getFormatChoices(MediaInterface $media = null)
+    protected function getFormatChoices(?MediaInterface $media = null)
     {
         $formatChoices = [];
 
@@ -225,8 +234,6 @@ class MediaBlockService extends AbstractAdminBlockService
     }
 
     /**
-     * @param FormMapper $formMapper
-     *
      * @return FormBuilder
      */
     protected function getMediaBuilder(FormMapper $formMapper)

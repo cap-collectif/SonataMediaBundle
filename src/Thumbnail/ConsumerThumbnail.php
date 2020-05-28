@@ -18,6 +18,9 @@ use Sonata\MediaBundle\Provider\MediaProviderInterface;
 use Sonata\NotificationBundle\Backend\BackendInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class ConsumerThumbnail implements ThumbnailInterface
 {
     /**
@@ -44,11 +47,9 @@ class ConsumerThumbnail implements ThumbnailInterface
      * NEXT_MAJOR: remove optional null for EventDispatcherInterface.
      *
      * @param string                   $id
-     * @param ThumbnailInterface       $thumbnail
-     * @param BackendInterface         $backend
      * @param EventDispatcherInterface $dispatcher
      */
-    public function __construct($id, ThumbnailInterface $thumbnail, BackendInterface $backend, EventDispatcherInterface $dispatcher = null)
+    public function __construct($id, ThumbnailInterface $thumbnail, BackendInterface $backend, ?EventDispatcherInterface $dispatcher = null)
     {
         /*
          * NEXT_MAJOR: remove this check
@@ -86,12 +87,12 @@ class ConsumerThumbnail implements ThumbnailInterface
     /**
      * {@inheritdoc}
      */
-    public function generate(MediaProviderInterface $provider, MediaInterface $media): void
+    public function generate(MediaProviderInterface $provider, MediaInterface $media)
     {
         $backend = $this->backend;
         $id = $this->id;
 
-        $publish = function () use ($backend, $media, $id): void {
+        $publish = static function () use ($backend, $media, $id) {
             $backend->createAndPublish('sonata.media.create_thumbnail', [
                 'thumbnailId' => $id,
                 'mediaId' => $media->getId(),

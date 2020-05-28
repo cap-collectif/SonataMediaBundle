@@ -17,7 +17,6 @@ use Buzz\Browser;
 use Gaufrette\Filesystem;
 use Imagine\Image\Box;
 use Sonata\AdminBundle\Form\FormMapper;
-use Sonata\CoreBundle\Model\Metadata;
 use Sonata\MediaBundle\CDN\CDNInterface;
 use Sonata\MediaBundle\Generator\GeneratorInterface;
 use Sonata\MediaBundle\Metadata\MetadataBuilderInterface;
@@ -41,15 +40,9 @@ abstract class BaseVideoProvider extends BaseProvider
     protected $metadata;
 
     /**
-     * @param string                        $name
-     * @param Filesystem                    $filesystem
-     * @param CDNInterface                  $cdn
-     * @param GeneratorInterface            $pathGenerator
-     * @param ThumbnailInterface            $thumbnail
-     * @param Browser                       $browser
-     * @param MetadataBuilderInterface|null $metadata
+     * @param string $name
      */
-    public function __construct($name, Filesystem $filesystem, CDNInterface $cdn, GeneratorInterface $pathGenerator, ThumbnailInterface $thumbnail, Browser $browser, MetadataBuilderInterface $metadata = null)
+    public function __construct($name, Filesystem $filesystem, CDNInterface $cdn, GeneratorInterface $pathGenerator, ThumbnailInterface $thumbnail, Browser $browser, ?MetadataBuilderInterface $metadata = null)
     {
         parent::__construct($name, $filesystem, $cdn, $pathGenerator, $thumbnail);
 
@@ -102,7 +95,8 @@ abstract class BaseVideoProvider extends BaseProvider
      */
     public function generatePublicUrl(MediaInterface $media, $format)
     {
-        return $this->getCdn()->getPath(sprintf('%s/thumb_%s_%s.jpg',
+        return $this->getCdn()->getPath(sprintf(
+            '%s/thumb_%s_%s.jpg',
             $this->generatePath($media),
             $media->getId(),
             $format
@@ -114,7 +108,8 @@ abstract class BaseVideoProvider extends BaseProvider
      */
     public function generatePrivateUrl(MediaInterface $media, $format)
     {
-        return sprintf('%s/thumb_%s_%s.jpg',
+        return sprintf(
+            '%s/thumb_%s_%s.jpg',
             $this->generatePath($media),
             $media->getId(),
             $format
@@ -198,8 +193,7 @@ abstract class BaseVideoProvider extends BaseProvider
     // abstract public function getReferenceUrl(MediaInterface $media);
 
     /**
-     * @param MediaInterface $media
-     * @param string         $url
+     * @param string $url
      *
      * @throws \RuntimeException
      *
@@ -210,7 +204,7 @@ abstract class BaseVideoProvider extends BaseProvider
         try {
             $response = $this->browser->get($url);
         } catch (\RuntimeException $e) {
-            throw new \RuntimeException('Unable to retrieve the video information for :'.$url, null, $e);
+            throw new \RuntimeException('Unable to retrieve the video information for :'.$url, $e->getCode(), $e);
         }
 
         $metadata = json_decode($response->getContent(), true);
@@ -223,9 +217,8 @@ abstract class BaseVideoProvider extends BaseProvider
     }
 
     /**
-     * @param MediaInterface $media
-     * @param string         $format
-     * @param array          $options
+     * @param string $format
+     * @param array  $options
      *
      * @return Box
      */

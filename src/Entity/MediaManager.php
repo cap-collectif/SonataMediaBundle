@@ -13,11 +13,14 @@ declare(strict_types=1);
 
 namespace Sonata\MediaBundle\Entity;
 
-use Sonata\CoreBundle\Model\BaseEntityManager;
 use Sonata\DatagridBundle\Pager\Doctrine\Pager;
 use Sonata\DatagridBundle\ProxyQuery\Doctrine\ProxyQuery;
+use Sonata\Doctrine\Entity\BaseEntityManager;
 use Sonata\MediaBundle\Model\MediaManagerInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class MediaManager extends BaseEntityManager implements MediaManagerInterface
 {
     /**
@@ -35,7 +38,7 @@ class MediaManager extends BaseEntityManager implements MediaManagerInterface
         }
 
         // BC compatibility for $providerName parameter
-        if (3 == \func_num_args()) {
+        if (3 === \func_num_args()) {
             $media->setProviderName(func_get_arg(2));
         }
 
@@ -58,7 +61,7 @@ class MediaManager extends BaseEntityManager implements MediaManagerInterface
 
         $fields = $this->getEntityManager()->getClassMetadata($this->class)->getFieldNames();
         foreach ($sort as $field => $direction) {
-            if (!\in_array($field, $fields)) {
+            if (!\in_array($field, $fields, true)) {
                 throw new \RuntimeException(sprintf("Invalid sort field '%s' in '%s' class", $field, $this->class));
             }
         }

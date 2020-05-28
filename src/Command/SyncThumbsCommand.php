@@ -26,6 +26,9 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
  *
  * Useful if you have existing media content and added new formats.
  */
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class SyncThumbsCommand extends BaseCommand
 {
     /**
@@ -45,14 +48,15 @@ class SyncThumbsCommand extends BaseCommand
     {
         $this->setName('sonata:media:sync-thumbnails')
             ->setDescription('Sync uploaded image thumbs with new media formats')
-            ->setDefinition([
+            ->setDefinition(
+                [
                 new InputArgument('providerName', InputArgument::OPTIONAL, 'The provider'),
                 new InputArgument('context', InputArgument::OPTIONAL, 'The context'),
                 new InputOption('batchSize', null, InputOption::VALUE_REQUIRED, 'Media batch size (100 by default)', 100),
                 new InputOption('batchesLimit', null, InputOption::VALUE_REQUIRED, 'Media batches limit (0 by default)', 0),
                 new InputOption('startOffset', null, InputOption::VALUE_REQUIRED, 'Medias start offset (0 by default)', 0),
             ]
-        );
+            );
     }
 
     /**
@@ -145,12 +149,14 @@ class SyncThumbsCommand extends BaseCommand
             //clear entity manager for saving memory
             $this->getMediaManager()->getObjectManager()->clear();
 
-            if ($batchesLimit > 0 && $batchCounter == $batchesLimit) {
+            if ($batchesLimit > 0 && $batchCounter === $batchesLimit) {
                 break;
             }
         } while (true);
 
         $this->log("Done (total medias processed: {$totalMediasCount}).");
+
+        return 0;
     }
 
     /**
@@ -166,8 +172,11 @@ class SyncThumbsCommand extends BaseCommand
         try {
             $provider->removeThumbnails($media);
         } catch (\Exception $e) {
-            $this->log(sprintf('<error>Unable to remove old thumbnails, media: %s - %s </error>',
-                $media->getId(), $e->getMessage()));
+            $this->log(sprintf(
+                '<error>Unable to remove old thumbnails, media: %s - %s </error>',
+                $media->getId(),
+                $e->getMessage()
+            ));
 
             return false;
         }
@@ -175,8 +184,11 @@ class SyncThumbsCommand extends BaseCommand
         try {
             $provider->generateThumbnails($media);
         } catch (\Exception $e) {
-            $this->log(sprintf('<error>Unable to generate new thumbnails, media: %s - %s </error>',
-                $media->getId(), $e->getMessage()));
+            $this->log(sprintf(
+                '<error>Unable to generate new thumbnails, media: %s - %s </error>',
+                $media->getId(),
+                $e->getMessage()
+            ));
 
             return false;
         }

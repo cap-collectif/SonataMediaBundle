@@ -25,6 +25,8 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
  * This command can be used to update CDN status for medias that are currently
  * in status flushing.
  *
+ * @final since sonata-project/media-bundle 3.21.0
+ *
  * @author Javier Spagnoletti <phansys@gmail.com>
  */
 class UpdateCdnStatusCommand extends BaseCommand
@@ -51,11 +53,12 @@ class UpdateCdnStatusCommand extends BaseCommand
     {
         $this->setName('sonata:media:update-cdn-status')
             ->setDescription('Refresh CDN status for medias that are in status flushing')
-            ->setDefinition([
+            ->setDefinition(
+                [
                 new InputArgument('providerName', InputArgument::OPTIONAL, 'The provider'),
                 new InputArgument('context', InputArgument::OPTIONAL, 'The context'),
             ]
-        );
+            );
     }
 
     /**
@@ -100,7 +103,7 @@ class UpdateCdnStatusCommand extends BaseCommand
                 $media->setCdnStatus($cdnStatus);
 
                 if (OutputInterface::VERBOSITY_VERBOSE <= $this->output->getVerbosity()) {
-                    if ($previousStatus == $cdnStatus) {
+                    if ($previousStatus === $cdnStatus) {
                         $this->log(sprintf('No changes (%d)', $cdnStatus));
                     } elseif (CDNInterface::STATUS_OK === $cdnStatus) {
                         $this->log(sprintf('<info>Flush completed</info> (%d => %d)', $previousStatus, $cdnStatus));
@@ -124,6 +127,8 @@ class UpdateCdnStatusCommand extends BaseCommand
         }
 
         $this->log('Done!');
+
+        return 0;
     }
 
     /**
@@ -143,10 +148,7 @@ class UpdateCdnStatusCommand extends BaseCommand
         }
     }
 
-    /**
-     * @return MediaProviderInterface
-     */
-    private function getProvider()
+    private function getProvider(): MediaProviderInterface
     {
         $providerName = $this->input->getArgument('providerName');
 
@@ -161,10 +163,7 @@ class UpdateCdnStatusCommand extends BaseCommand
         return $this->getMediaPool()->getProvider($providerName);
     }
 
-    /**
-     * @return string
-     */
-    private function getContext()
+    private function getContext(): string
     {
         $context = $this->input->getArgument('context');
 
@@ -179,10 +178,7 @@ class UpdateCdnStatusCommand extends BaseCommand
         return $context;
     }
 
-    /**
-     * @return QuestionHelper
-     */
-    private function getQuestionHelper()
+    private function getQuestionHelper(): QuestionHelper
     {
         return $this->getHelper('question');
     }

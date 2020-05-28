@@ -24,46 +24,18 @@ Retrieve the bundle with composer:
 
 .. code-block:: bash
 
-    $ composer require sonata-project/media-bundle
-    $ composer require sonata-project/classification-bundle # (optional: if you need media classification)
+    composer require sonata-project/media-bundle
 
-Register these bundles in your ``bundles.php`` file:
-
-.. code-block:: php
-
-    <?php
+Register these bundles in your ``bundles.php`` file::
 
     // config/bundles.php
 
     return [
-        //...
+        // ...
         Sonata\MediaBundle\SonataMediaBundle::class => ['all' => true],
         Sonata\EasyExtendsBundle\SonataEasyExtendsBundle::class => ['all' => true],
         JMS\SerializerBundle\JMSSerializerBundle::class => ['all' => true],
     ];
-
-.. note::
-    If you are not using Symfony Flex, you should enable bundles in your
-    ``AppKernel.php``.
-
-
-.. code-block:: php
-
-  <?php
-  // app/AppKernel.php
-
-  public function registerBundles()
-  {
-      return array(
-          // ...
-          new Sonata\MediaBundle\SonataMediaBundle(),
-          new Sonata\EasyExtendsBundle\SonataEasyExtendsBundle(),
-
-          // You need to add this dependency to make media functional
-          new JMS\SerializerBundle\JMSSerializerBundle(),
-          // ...
-      );
-  }
 
 Next, add the correct routing files:
 
@@ -80,9 +52,6 @@ Next, add the correct routing files:
         media:
             resource: '@SonataMediaBundle/Resources/config/routing/media.xml'
             prefix: /media
-
-.. note::
-    If you are not using Symfony Flex, routes should be added to ``app/config/routing.yml``.
 
 Then, you must configure the interaction with the persistence backend you picked:
 
@@ -101,21 +70,13 @@ If you picked Doctrine ORM:
                         mappings:
                             SonataMediaBundle: ~
 
-            dbal:
-                types:
-                    json: Sonata\Doctrine\Types\JsonType
-
-.. note::
-    If you are not using Symfony Flex, this configuration should be added
-    to ``app/config/config.yml``.
-
 If you picked Doctrine PHPCR:
 
 .. configuration-block::
 
     .. code-block:: yaml
 
-        # config/packages/doctrine.yaml
+        # config/packages/doctrine_phpcr.yaml
 
         doctrine_phpcr:
             odm:
@@ -124,24 +85,20 @@ If you picked Doctrine PHPCR:
                     SonataMediaBundle:
                         prefix: Sonata\MediaBundle\PHPCR
 
-.. note::
-    If you are not using Symfony Flex, this configuration should be added
-    to ``app/config/config.yml``.
-
 Once you have done that, you can configure the Media bundle itself:
 
 .. configuration-block::
 
     .. code-block:: yaml
 
-        # config/packages/sonata.yaml
+        # config/packages/sonata_media.yaml
 
         sonata_media:
             # if you don't use default namespace configuration
             #class:
-            #    media:        MyVendor\MediaBundle\Entity\Media
-            #    gallery:      MyVendor\MediaBundle\Entity\Gallery
-            #    gallery_item: MyVendor\MediaBundle\Entity\GalleryItem
+            #    media: MyVendor\MediaBundle\Entity\Media
+            #    gallery: MyVendor\MediaBundle\Entity\Gallery
+            #    gallery_has_media: MyVendor\MediaBundle\Entity\GalleryHasMedia
             db_driver: doctrine_orm # or doctrine_mongodb, doctrine_phpcr it is mandatory to choose one here
             default_context: default # you need to set a context
             contexts:
@@ -163,13 +120,8 @@ Once you have done that, you can configure the Media bundle itself:
 
             filesystem:
                 local:
-                    directory:  "%kernel.root_dir%/../public/uploads/media" #flex
-                    #directory:  "%kernel.root_dir%/../web/uploads/media" #non-flex
+                    directory:  '%kernel.root_dir%/../public/uploads/media'
                     create:     false
-
-.. note::
-    If you are not using Symfony Flex, this configuration should be added
-    to ``app/config/config.yml``.
 
 .. note::
 
@@ -183,16 +135,12 @@ Also, you can determine the resizer to use; the default value is
 
     .. code-block:: yaml
 
-        # config/packages/sonata.yaml
+        # config/packages/sonata_media.yaml
 
         sonata_media:
             providers:
                 image:
                     resizer: sonata.media.resizer.square
-
-.. note::
-    If you are not using Symfony Flex, this configuration should be added
-    to ``app/config/config.yml``.
 
 .. note::
 
@@ -201,12 +149,11 @@ Also, you can determine the resizer to use; the default value is
     the lower size.
 
 At this point, the bundle is not yet ready. You need to generate the correct
-entities for the media::
+entities for the media:
+
+.. code-block:: bash
 
     bin/console sonata:easy-extends:generate --dest=src SonataMediaBundle --namespace_prefix=App
-
-.. note::
-    If you are not using Symfony Flex, use command without ``--namespace_prefix=App``.
 
 .. note::
 
@@ -222,51 +169,22 @@ entities for the media::
     point to a global namespace. For instance the media will be
     ``App\Application\Sonata\MediaBundle\Entity\Media``.
 
-.. note::
-    If you are not using Symfony Flex, the namespace will be ``Application\Sonata\MediaBundle\Entity\Media``.
-
-Now, add the new ``Application`` Bundle into the ``bundles.php``:
-
-.. code-block:: php
-
-    <?php
+Now, add the new ``Application`` Bundle into the ``bundles.php``::
 
     // config/bundles.php
 
     return [
-        //...
+        // ...
         App\Application\Sonata\MediaBundle\ApplicationSonataMediaBundle::class => ['all' => true],
     ];
 
-.. note::
-    If you are not using Symfony Flex, add the new ``Application`` Bundle into your
-    ``AppKernel.php``.
-
-.. code-block:: php
-
-    <?php
-    // app/AppKernel.php
-
-    public function registerBundles()
-    {
-        return array(
-            // ...
-            new Application\Sonata\MediaBundle\ApplicationSonataMediaBundle(),
-            // ...
-        );
-    }
-
 Configure SonataMediaBundle to use the newly generated classes:
-
-.. note::
-    If you are not using Symfony Flex, add classes without the ``App\``
-    part.
 
 .. configuration-block::
 
     .. code-block:: yaml
 
-        # config/packages/sonata.yaml
+        # config/packages/sonata_media.yaml
 
         sonata_media:
             # if you don't use default namespace configuration
@@ -274,13 +192,6 @@ Configure SonataMediaBundle to use the newly generated classes:
                 media: App\Application\Sonata\MediaBundle\Entity\Media
                 gallery: App\Application\Sonata\MediaBundle\Entity\Gallery
                 gallery_has_media: App\Application\Sonata\MediaBundle\Entity\GalleryHasMedia
-
-            #...
-
-
-.. note::
-    If you are not using Symfony Flex, this configuration should be added
-    to ``app/config/config.yml``.
 
 If you are not using auto-mapping in doctrine you will have to add it there
 too:
@@ -299,10 +210,6 @@ too:
                             ApplicationSonataMediaBundle: ~
                             SonataMediaBundle: ~
 
-.. note::
-    If you are not using Symfony Flex, this configuration should be added
-    to ``app/config/config.yml``.
-
 You will have to exclude your ``Application`` folder from Symfony service
 autowiring:
 
@@ -311,29 +218,23 @@ autowiring:
     .. code-block:: yaml
 
         # config/services.yaml
+
         services:
             App\:
                 resource: '../src/*'
                 exclude: '../src/{Entity,Tests,Application}'
 
-.. note::
-    If you are not using Symfony Flex, skip this part.
-
 Now, you can build up your database:
 
 .. code-block:: bash
 
-    $ bin/console doctrine:schema:[create|update]
-
+    bin/console doctrine:schema:[create|update]
 
 If they are not already created, you need to add specific folder to allow uploads from users,
 make sure your http user can write to this directory:
 
 .. code-block:: bash
 
-    $ mkdir -p public/uploads/media
-
-.. note::
-    If you are not using Symfony Flex, replace ``public`` with ``web`` folder.
+    mkdir -p public/uploads/media
 
 Then you can visit your admin dashboard on http://my-server/admin/dashboard

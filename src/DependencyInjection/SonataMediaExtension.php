@@ -25,6 +25,8 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 /**
+ * @final since sonata-project/media-bundle 3.21.0
+ *
  * @author Thomas Rabaix <thomas.rabaix@sonata-project.org>
  */
 class SonataMediaExtension extends Extension implements PrependExtensionInterface
@@ -37,7 +39,7 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
     /**
      * {@inheritdoc}
      */
-    public function load(array $configs, ContainerBuilder $container): void
+    public function load(array $configs, ContainerBuilder $container)
     {
         $processor = new Processor();
         $configuration = new Configuration();
@@ -60,7 +62,7 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
         if (isset($bundles['FOSRestBundle'], $bundles['NelmioApiDocBundle'])) {
             $loader->load(sprintf('api_form_%s.xml', $config['db_driver']));
 
-            if ('doctrine_orm' == $config['db_driver']) {
+            if ('doctrine_orm' === $config['db_driver']) {
                 $loader->load('api_controllers.xml');
             }
         }
@@ -93,7 +95,7 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
             $categoryManager->setPublic(true);
         }
 
-        if (!array_key_exists($config['default_context'], $config['contexts'])) {
+        if (!\array_key_exists($config['default_context'], $config['contexts'])) {
             throw new \InvalidArgumentException(sprintf('SonataMediaBundle - Invalid default context : %s, available : %s', $config['default_context'], json_encode(array_keys($config['contexts']))));
         }
 
@@ -148,7 +150,7 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
             $pool->addMethodCall('addDownloadStrategy', [$strategyId, new Reference($strategyId)]);
         }
 
-        if ('doctrine_orm' == $config['db_driver']) {
+        if ('doctrine_orm' === $config['db_driver']) {
             $this->registerDoctrineMapping($config);
         }
 
@@ -163,11 +165,7 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
         $this->configureResizers($container, $config);
     }
 
-    /**
-     * @param ContainerBuilder $container
-     * @param array            $config
-     */
-    public function configureProviders(ContainerBuilder $container, array $config): void
+    public function configureProviders(ContainerBuilder $container, array $config)
     {
         $container->getDefinition('sonata.media.provider.image')
             ->replaceArgument(5, array_map('strtolower', $config['providers']['image']['allowed_extensions']))
@@ -183,11 +181,7 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
         $container->getDefinition('sonata.media.provider.youtube')->replaceArgument(7, $config['providers']['youtube']['html5']);
     }
 
-    /**
-     * @param ContainerBuilder $container
-     * @param array            $config
-     */
-    public function configureBuzz(ContainerBuilder $container, array $config): void
+    public function configureBuzz(ContainerBuilder $container, array $config)
     {
         $container->getDefinition('sonata.media.buzz.browser')
             ->replaceArgument(0, new Reference($config['buzz']['connector']));
@@ -205,15 +199,11 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
         }
     }
 
-    /**
-     * @param ContainerBuilder $container
-     * @param array            $config
-     */
-    public function configureParameterClass(ContainerBuilder $container, array $config): void
+    public function configureParameterClass(ContainerBuilder $container, array $config)
     {
         $container->setParameter('sonata.media.admin.media.entity', $config['class']['media']);
         $container->setParameter('sonata.media.admin.gallery.entity', $config['class']['gallery']);
-        $container->setParameter('sonata.media.admin.gallery_item.entity', $config['class']['gallery_item']);
+        $container->setParameter('sonata.media.admin.gallery_has_media.entity', $config['class']['gallery_has_media']);
 
         $container->setParameter('sonata.media.media.class', $config['class']['media']);
         $container->setParameter('sonata.media.gallery.class', $config['class']['gallery']);
@@ -221,16 +211,13 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
         $container->getDefinition('sonata.media.form.type.media')->replaceArgument(1, $config['class']['media']);
     }
 
-    /**
-     * @param array $config
-     */
-    public function registerDoctrineMapping(array $config): void
+    public function registerDoctrineMapping(array $config)
     {
         $collector = DoctrineCollector::getInstance();
 
         $collector->addAssociation($config['class']['media'], 'mapOneToMany', [
-            'fieldName' => 'galleryItems',
-            'targetEntity' => $config['class']['gallery_item'],
+            'fieldName' => 'galleryHasMedias',
+            'targetEntity' => $config['class']['gallery_has_media'],
             'cascade' => [
                 'persist',
             ],
@@ -238,14 +225,14 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
             'orphanRemoval' => false,
         ]);
 
-        $collector->addAssociation($config['class']['gallery_item'], 'mapManyToOne', [
+        $collector->addAssociation($config['class']['gallery_has_media'], 'mapManyToOne', [
             'fieldName' => 'gallery',
             'targetEntity' => $config['class']['gallery'],
             'cascade' => [
                 'persist',
             ],
             'mappedBy' => null,
-            'inversedBy' => 'galleryItems',
+            'inversedBy' => 'galleryHasMedias',
             'joinColumns' => [
                 [
                     'name' => 'gallery_id',
@@ -256,14 +243,14 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
             'orphanRemoval' => false,
         ]);
 
-        $collector->addAssociation($config['class']['gallery_item'], 'mapManyToOne', [
+        $collector->addAssociation($config['class']['gallery_has_media'], 'mapManyToOne', [
             'fieldName' => 'media',
             'targetEntity' => $config['class']['media'],
             'cascade' => [
                  'persist',
             ],
             'mappedBy' => null,
-            'inversedBy' => 'galleryItems',
+            'inversedBy' => 'galleryHasMedias',
             'joinColumns' => [
                 [
                     'name' => 'media_id',
@@ -275,8 +262,8 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
         ]);
 
         $collector->addAssociation($config['class']['gallery'], 'mapOneToMany', [
-            'fieldName' => 'galleryItems',
-            'targetEntity' => $config['class']['gallery_item'],
+            'fieldName' => 'galleryHasMedias',
+            'targetEntity' => $config['class']['gallery_has_media'],
             'cascade' => [
                 'persist',
             ],
@@ -310,11 +297,8 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
 
     /**
      * Inject CDN dependency to default provider.
-     *
-     * @param ContainerBuilder $container
-     * @param array            $config
      */
-    public function configureCdnAdapter(ContainerBuilder $container, array $config): void
+    public function configureCdnAdapter(ContainerBuilder $container, array $config)
     {
         // add the default configuration for the server cdn
         if ($container->hasDefinition('sonata.media.cdn.server') && isset($config['cdn']['server'])) {
@@ -359,11 +343,8 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
 
     /**
      * Inject filesystem dependency to default provider.
-     *
-     * @param ContainerBuilder $container
-     * @param array            $config
      */
-    public function configureFilesystemAdapter(ContainerBuilder $container, array $config): void
+    public function configureFilesystemAdapter(ContainerBuilder $container, array $config)
     {
         // add the default configuration for the local filesystem
         if ($container->hasDefinition('sonata.media.adapter.filesystem.local') && isset($config['filesystem']['local'])) {
@@ -403,7 +384,7 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
             ;
 
             $container->getDefinition('sonata.media.metadata.amazon')
-                ->addArgument([
+                ->replaceArgument(0, [
                         'acl' => $config['filesystem']['s3']['acl'],
                         'storage' => $config['filesystem']['s3']['storage'],
                         'encryption' => $config['filesystem']['s3']['encryption'],
@@ -487,11 +468,7 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
         }
     }
 
-    /**
-     * @param ContainerBuilder $container
-     * @param array            $config
-     */
-    public function configureExtra(ContainerBuilder $container, array $config): void
+    public function configureExtra(ContainerBuilder $container, array $config)
     {
         if ($config['pixlr']['enabled']) {
             $container->getDefinition('sonata.media.extra.pixlr')
@@ -504,11 +481,18 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
     }
 
     /**
-     * Allow an extension to prepend the extension configurations.
+     * NEXT_MAJOR: Remove this method.
      *
-     * @param ContainerBuilder $container
+     * @deprecated since sonata-project/media-bundle 3.22, to be removed in version 4.0.
      */
-    public function prepend(ContainerBuilder $container): void
+    public function configureClassesToCompile()
+    {
+    }
+
+    /**
+     * Allow an extension to prepend the extension configurations.
+     */
+    public function prepend(ContainerBuilder $container)
     {
         $bundles = $container->getParameter('kernel.bundles');
 
@@ -520,35 +504,26 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
 
     /**
      * Checks if the classification of media is enabled.
-     *
-     * @param array $config
-     *
-     * @return bool
      */
-    private function isClassificationEnabled(array $config)
+    private function isClassificationEnabled(array $config): bool
     {
         return interface_exists(CategoryInterface::class)
             && !$config['force_disable_category'];
     }
 
-    /**
-     * @param ContainerBuilder $container
-     * @param array            $config
-     */
     private function configureAdapters(ContainerBuilder $container, array $config): void
     {
         foreach (['gd', 'imagick', 'gmagick'] as $adapter) {
             if ($container->hasParameter('sonata.media.adapter.image.'.$adapter.'.class')) {
-                $container->register('sonata.media.adapter.image.'.$adapter, $container->getParameter('sonata.media.adapter.image.'.$adapter.'.class'));
+                $container->register(
+                    'sonata.media.adapter.image.'.$adapter,
+                    $container->getParameter('sonata.media.adapter.image.'.$adapter.'.class')
+                );
             }
         }
         $container->setAlias('sonata.media.adapter.image.default', $config['adapters']['default']);
     }
 
-    /**
-     * @param ContainerBuilder $container
-     * @param array            $config
-     */
     private function configureResizers(ContainerBuilder $container, array $config): void
     {
         if ($container->hasParameter('sonata.media.resizer.simple.class')) {
@@ -558,6 +533,7 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
                 '%sonata.media.resizer.simple.adapter.mode%',
                 new Reference('sonata.media.metadata.proxy'),
             ]);
+            $definition->addTag('sonata.media.resizer');
             $container->setDefinition('sonata.media.resizer.simple', $definition);
         }
 
@@ -568,6 +544,7 @@ class SonataMediaExtension extends Extension implements PrependExtensionInterfac
                 '%sonata.media.resizer.square.adapter.mode%',
                 new Reference('sonata.media.metadata.proxy'),
             ]);
+            $definition->addTag('sonata.media.resizer');
             $container->setDefinition('sonata.media.resizer.square', $definition);
         }
 

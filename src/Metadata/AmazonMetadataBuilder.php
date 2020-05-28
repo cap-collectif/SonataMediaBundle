@@ -16,6 +16,9 @@ namespace Sonata\MediaBundle\Metadata;
 use GuzzleHttp\Psr7;
 use Sonata\MediaBundle\Model\MediaInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class AmazonMetadataBuilder implements MetadataBuilderInterface
 {
     public const PRIVATE_ACCESS = 'private';
@@ -46,9 +49,6 @@ class AmazonMetadataBuilder implements MetadataBuilderInterface
         'owner_full_control' => self::BUCKET_OWNER_FULL_CONTROL,
     ];
 
-    /**
-     * @param array $settings
-     */
     public function __construct(array $settings)
     {
         $this->settings = $settings;
@@ -80,9 +80,9 @@ class AmazonMetadataBuilder implements MetadataBuilderInterface
 
         //merge storage
         if (isset($this->settings['storage'])) {
-            if ('standard' == $this->settings['storage']) {
+            if ('standard' === $this->settings['storage']) {
                 $output['storage'] = static::STORAGE_STANDARD;
-            } elseif ('reduced' == $this->settings['storage']) {
+            } elseif ('reduced' === $this->settings['storage']) {
                 $output['storage'] = static::STORAGE_REDUCED;
             }
         }
@@ -99,7 +99,7 @@ class AmazonMetadataBuilder implements MetadataBuilderInterface
 
         //merge encryption
         if (isset($this->settings['encryption']) && !empty($this->settings['encryption'])) {
-            if ('aes256' == $this->settings['encryption']) {
+            if ('aes256' === $this->settings['encryption']) {
                 $output['encryption'] = 'AES256';
             }
         }

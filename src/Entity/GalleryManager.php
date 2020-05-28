@@ -13,12 +13,15 @@ declare(strict_types=1);
 
 namespace Sonata\MediaBundle\Entity;
 
-use Sonata\CoreBundle\Model\BaseEntityManager;
 use Sonata\DatagridBundle\Pager\Doctrine\Pager;
 use Sonata\DatagridBundle\ProxyQuery\Doctrine\ProxyQuery;
+use Sonata\Doctrine\Entity\BaseEntityManager;
 use Sonata\MediaBundle\Model\GalleryInterface;
 use Sonata\MediaBundle\Model\GalleryManagerInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class GalleryManager extends BaseEntityManager implements GalleryManagerInterface
 {
     /**
@@ -27,8 +30,6 @@ class GalleryManager extends BaseEntityManager implements GalleryManagerInterfac
      * NEXT_MAJOR: remove this method.
      *
      * @deprecated Please use save() from now
-     *
-     * @param GalleryInterface $gallery
      */
     public function update(GalleryInterface $gallery): void
     {
@@ -46,11 +47,11 @@ class GalleryManager extends BaseEntityManager implements GalleryManagerInterfac
 
         $fields = $this->getEntityManager()->getClassMetadata($this->class)->getFieldNames();
         foreach ($sort as $field => $direction) {
-            if (!\in_array($field, $fields)) {
+            if (!\in_array($field, $fields, true)) {
                 throw new \RuntimeException(sprintf("Invalid sort field '%s' in '%s' class", $field, $this->class));
             }
         }
-        if (0 == \count($sort)) {
+        if (0 === \count($sort)) {
             $sort = ['name' => 'ASC'];
         }
         foreach ($sort as $field => $direction) {

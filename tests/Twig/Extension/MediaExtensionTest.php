@@ -12,12 +12,14 @@ declare(strict_types=1);
  */
 
 use PHPUnit\Framework\TestCase;
-use Sonata\CoreBundle\Model\ManagerInterface;
+use Sonata\Doctrine\Model\ManagerInterface;
 use Sonata\MediaBundle\Model\Media;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Provider\MediaProviderInterface;
 use Sonata\MediaBundle\Provider\Pool;
 use Sonata\MediaBundle\Twig\Extension\MediaExtension;
+use Twig\Environment;
+use Twig\Template;
 
 /**
  * @author Geza Buza <bghome@gmail.com>
@@ -30,12 +32,12 @@ class MediaExtensionTest extends TestCase
     private $provider;
 
     /**
-     * @var Twig_Template
+     * @var Template
      */
     private $template;
 
     /**
-     * @var Twig_Environment
+     * @var Environment
      */
     private $environment;
 
@@ -79,56 +81,50 @@ class MediaExtensionTest extends TestCase
         $mediaExtension->thumbnail($media, $format, $options);
     }
 
-    public function getMediaService()
+    public function getMediaService(): Pool
     {
-        $mediaService = $this->getMockBuilder(Pool::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $mediaService = $this->createMock(Pool::class);
         $mediaService->method('getProvider')->willReturn($this->getProvider());
 
         return $mediaService;
     }
 
-    public function getMediaManager()
+    public function getMediaManager(): ManagerInterface
     {
         return $this->createMock(ManagerInterface::class);
     }
 
-    public function getProvider()
+    public function getProvider(): MediaProviderInterface
     {
         if (null === $this->provider) {
             $this->provider = $this->createMock(MediaProviderInterface::class);
-            $this->provider->method('getFormatName')->will($this->returnArgument(1));
+            $this->provider->method('getFormatName')->willReturnArgument(1);
+            $this->provider->method('getFormat')->willReturn(false);
         }
 
         return $this->provider;
     }
 
-    public function getTemplate()
+    public function getTemplate(): Template
     {
         if (null === $this->template) {
-            $this->template = $this->getMockBuilder('Twig_Template')
-                                   ->disableOriginalConstructor()
-                                   ->setMethods(['render'])
-                                   ->getMockForAbstractClass();
+            $this->template = $this->createMock(Template::class);
         }
 
         return $this->template;
     }
 
-    public function getEnvironment()
+    public function getEnvironment(): Environment
     {
         if (null === $this->environment) {
-            $this->environment = $this->getMockBuilder('Twig_Environment')
-                ->disableOriginalConstructor()
-                ->getMock();
+            $this->environment = $this->createMock(Environment::class);
             $this->environment->method('loadTemplate')->willReturn($this->getTemplate());
         }
 
         return $this->environment;
     }
 
-    public function getMedia()
+    public function getMedia(): Media
     {
         if (null === $this->media) {
             $this->media = $this->createMock(Media::class);

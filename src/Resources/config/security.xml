@@ -10,10 +10,7 @@
         <service id="sonata.media.security.superadmin_strategy" class="Sonata\MediaBundle\Security\RolesDownloadStrategy">
             <argument type="service" id="translator"/>
             <argument type="service" id="security.authorization_checker"/>
-            <argument type="collection">
-                <argument>ROLE_SUPER_ADMIN</argument>
-                <argument>ROLE_ADMIN</argument>
-            </argument>
+            <argument type="collection"/>
         </service>
         <service id="sonata.media.security.session_strategy" class="Sonata\MediaBundle\Security\SessionDownloadStrategy">
             <argument type="service" id="translator"/>

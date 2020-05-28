@@ -15,16 +15,21 @@ namespace Sonata\MediaBundle\Tests\Block;
 
 use Sonata\BlockBundle\Block\BlockContext;
 use Sonata\BlockBundle\Model\Block;
-use Sonata\BlockBundle\Test\AbstractBlockServiceTestCase;
+use Sonata\BlockBundle\Test\BlockServiceTestCase;
 use Sonata\MediaBundle\Block\GalleryBlockService;
 use Sonata\MediaBundle\Model\GalleryInterface;
 use Sonata\MediaBundle\Model\GalleryManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class GalleryBlockServiceTest extends AbstractBlockServiceTestCase
+class GalleryBlockServiceTest extends BlockServiceTestCase
 {
     protected $container;
+
     private $galleryManager;
+
+    /**
+     * @var GalleryBlockService
+     */
     private $blockService;
 
     protected function setUp(): void
@@ -35,8 +40,8 @@ class GalleryBlockServiceTest extends AbstractBlockServiceTestCase
         $this->galleryManager = $this->prophesize(GalleryManagerInterface::class);
 
         $this->blockService = new GalleryBlockService(
-            'block.service',
-            $this->templating,
+            $this->twig,
+            null,
             $this->container->reveal(),
             $this->galleryManager->reveal()
         );
@@ -54,13 +59,17 @@ class GalleryBlockServiceTest extends AbstractBlockServiceTestCase
         $block->getSetting('galleryId')->willReturn($gallery->reveal());
         $gallery->getGalleryItems()->willReturn([]);
 
-        $this->blockService->execute($blockContext->reveal());
+        $this->twig
+            ->expects($this->once())
+            ->method('render')
+            ->with('template', [
+                'gallery' => $gallery->reveal(),
+                'block' => $block->reveal(),
+                'elements' => [],
+                'settings' => ['settings'],
+            ]);
 
-        $this->assertSame('template', $this->templating->view);
-        $this->assertInternalType('array', $this->templating->parameters['settings']);
-        $this->assertInternalType('array', $this->templating->parameters['elements']);
-        $this->assertSame($gallery->reveal(), $this->templating->parameters['gallery']);
-        $this->assertSame($block->reveal(), $this->templating->parameters['block']);
+        $this->blockService->execute($blockContext->reveal());
     }
 
     public function testDefaultSettings(): void

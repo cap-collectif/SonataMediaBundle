@@ -14,15 +14,16 @@ declare(strict_types=1);
 namespace Sonata\MediaBundle\Tests\Command;
 
 use Gaufrette\Filesystem;
+use PHPUnit\Framework\MockObject\MockObject;
 use Sonata\MediaBundle\Command\RemoveThumbsCommand;
 use Sonata\MediaBundle\Model\MediaManagerInterface;
 use Sonata\MediaBundle\Provider\FileProvider;
 use Sonata\MediaBundle\Provider\Pool;
 use Sonata\MediaBundle\Tests\Entity\Media;
+use Sonata\MediaBundle\Tests\Fixtures\FilesystemTestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Filesystem\Tests\FilesystemTestCase;
+use Symfony\Component\DependencyInjection\Container;
 
 /**
  * @author Anton Dyshkant <vyshkant@gmail.com>
@@ -32,7 +33,7 @@ use Symfony\Component\Filesystem\Tests\FilesystemTestCase;
 final class RemoveThumbsCommandTest extends FilesystemTestCase
 {
     /**
-     * @var ContainerInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var Container
      */
     private $container;
 
@@ -52,12 +53,12 @@ final class RemoveThumbsCommandTest extends FilesystemTestCase
     private $tester;
 
     /**
-     * @var Pool|\PHPUnit_Framework_MockObject_MockObject
+     * @var Pool|MockObject
      */
     private $pool;
 
     /**
-     * @var MediaManagerInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var MediaManagerInterface|MockObject
      */
     private $mediaManager;
 
@@ -68,7 +69,7 @@ final class RemoveThumbsCommandTest extends FilesystemTestCase
     {
         parent::setUp();
 
-        $this->container = $this->createMock(ContainerInterface::class);
+        $this->container = new Container();
 
         $this->command = new RemoveThumbsCommand();
         $this->command->setContainer($this->container);
@@ -82,16 +83,8 @@ final class RemoveThumbsCommandTest extends FilesystemTestCase
 
         $this->mediaManager = $this->createMock(MediaManagerInterface::class);
 
-        $this->container->expects($this->any())
-            ->method('get')
-            ->will($this->returnCallback(function ($id) {
-                switch ($id) {
-                    case 'sonata.media.pool':
-                        return $this->pool;
-                    case 'sonata.media.manager.media':
-                        return $this->mediaManager;
-                }
-            }));
+        $this->container->set('sonata.media.pool', $this->pool);
+        $this->container->set('sonata.media.manager.media', $this->mediaManager);
     }
 
     public function testExecuteWithoutArguments(): void
@@ -112,27 +105,27 @@ final class RemoveThumbsCommandTest extends FilesystemTestCase
 
         $fileProvider = $this->createMock(FileProvider::class);
 
-        $fileProvider->expects($this->any())
+        $fileProvider
             ->method('getName')
-            ->will($this->returnValue('fooprovider'));
+            ->willReturn('fooprovider');
         $fileProvider->expects($this->once())
             ->method('getFormats')
-            ->will($this->returnValue($formats));
+            ->willReturn($formats);
         $fileProvider->expects($this->exactly(2))
             ->method('removeThumbnails');
         $fileProvider->expects($this->exactly(2))
             ->method('getFilesystem')
-            ->will($this->returnValue($this->createMock(Filesystem::class)));
+            ->willReturn($this->createMock(Filesystem::class));
 
         $this->pool->expects($this->once())
             ->method('getContexts')
-            ->will($this->returnValue(['foo' => $context]));
+            ->willReturn(['foo' => $context]);
         $this->pool->expects($this->once())
             ->method('getProviders')
-            ->will($this->returnValue(['fooprovider' => $fileProvider]));
+            ->willReturn(['fooprovider' => $fileProvider]);
         $this->pool->expects($this->once())
             ->method('getProvider')
-            ->will($this->returnValue($fileProvider));
+            ->willReturn($fileProvider);
 
         $medias = [];
 
@@ -146,9 +139,9 @@ final class RemoveThumbsCommandTest extends FilesystemTestCase
         $media->setName('bar');
         $medias[] = $media;
 
-        $findByReturnCallback = function (
+        $findByReturnCallback = static function (
             array $criteria,
-            array $orderBy = null,
+            ?array $orderBy = null,
             $limit = null,
             $offset = null
         ) use ($medias) {
@@ -161,7 +154,7 @@ final class RemoveThumbsCommandTest extends FilesystemTestCase
 
         $this->mediaManager->expects($this->exactly(2))
             ->method('findBy')
-            ->will($this->returnCallback($findByReturnCallback));
+            ->willReturnCallback($findByReturnCallback);
 
         $this->tester->setInputs(['fooprovider', 'foo', 'small']);
 

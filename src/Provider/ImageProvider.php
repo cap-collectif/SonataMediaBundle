@@ -15,7 +15,6 @@ namespace Sonata\MediaBundle\Provider;
 
 use Gaufrette\Filesystem;
 use Imagine\Image\ImagineInterface;
-use Sonata\CoreBundle\Model\Metadata;
 use Sonata\MediaBundle\CDN\CDNInterface;
 use Sonata\MediaBundle\Generator\GeneratorInterface;
 use Sonata\MediaBundle\Metadata\MetadataBuilderInterface;
@@ -24,6 +23,9 @@ use Sonata\MediaBundle\Thumbnail\ThumbnailInterface;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class ImageProvider extends FileProvider
 {
     /**
@@ -33,16 +35,9 @@ class ImageProvider extends FileProvider
 
     /**
      * @param string                   $name
-     * @param Filesystem               $filesystem
-     * @param CDNInterface             $cdn
-     * @param GeneratorInterface       $pathGenerator
-     * @param ThumbnailInterface       $thumbnail
-     * @param array                    $allowedExtensions
-     * @param array                    $allowedMimeTypes
-     * @param ImagineInterface         $adapter
      * @param MetadataBuilderInterface $metadata
      */
-    public function __construct($name, Filesystem $filesystem, CDNInterface $cdn, GeneratorInterface $pathGenerator, ThumbnailInterface $thumbnail, array $allowedExtensions, array $allowedMimeTypes, ImagineInterface $adapter, MetadataBuilderInterface $metadata = null)
+    public function __construct($name, Filesystem $filesystem, CDNInterface $cdn, GeneratorInterface $pathGenerator, ThumbnailInterface $thumbnail, array $allowedExtensions, array $allowedMimeTypes, ImagineInterface $adapter, ?MetadataBuilderInterface $metadata = null)
     {
         parent::__construct($name, $filesystem, $cdn, $pathGenerator, $thumbnail, $allowedExtensions, $allowedMimeTypes, $metadata);
 
@@ -54,7 +49,13 @@ class ImageProvider extends FileProvider
      */
     public function getProviderMetadata()
     {
-        return new Metadata($this->getName(), $this->getName().'.description', false, 'SonataMediaBundle', ['class' => 'fa fa-picture-o']);
+        return new Metadata(
+            $this->getName(),
+            $this->getName().'.description',
+            null,
+            'SonataMediaBundle',
+            ['class' => 'fa fa-picture-o']
+        );
     }
 
     /**
@@ -62,6 +63,10 @@ class ImageProvider extends FileProvider
      */
     public function getHelperProperties(MediaInterface $media, $format, $options = [])
     {
+        if (isset($options['srcset'], $options['picture'])) {
+            throw new \LogicException("The 'srcset' and 'picture' options must not be used simultaneously.");
+        }
+
         if (MediaProviderInterface::FORMAT_REFERENCE === $format) {
             $box = $media->getBox();
         } else {
@@ -77,14 +82,30 @@ class ImageProvider extends FileProvider
         $mediaWidth = $box->getWidth();
 
         $params = [
-            'alt' => $media->getName(),
+            'alt' => $media->getDescription() ?: $media->getName(),
             'title' => $media->getName(),
             'src' => $this->generatePublicUrl($media, $format),
             'width' => $mediaWidth,
             'height' => $box->getHeight(),
         ];
 
-        if (MediaProviderInterface::FORMAT_ADMIN !== $format) {
+        if (isset($options['picture'])) {
+            $pictureParams = [];
+            foreach ($options['picture'] as $key => $pictureFormat) {
+                $formatName = $this->getFormatName($media, $pictureFormat);
+                $settings = $this->getFormat($formatName);
+                $src = $this->generatePublicUrl($media, $formatName);
+                $mediaQuery = \is_string($key)
+                    ? $key
+                    : sprintf('(max-width: %dpx)', $this->resizer->getBox($media, $settings)->getWidth());
+
+                $pictureParams['source'][] = ['media' => $mediaQuery, 'srcset' => $src];
+            }
+
+            unset($options['picture']);
+            $pictureParams['img'] = $params + $options;
+            $params = ['picture' => $pictureParams];
+        } elseif (MediaProviderInterface::FORMAT_ADMIN !== $format) {
             $srcSetFormats = $this->getFormats();
 
             if (isset($options['srcset']) && \is_array($options['srcset'])) {
@@ -202,8 +223,8 @@ class ImageProvider extends FileProvider
             return;
         }
 
-        if (!\in_array(strtolower(pathinfo($fileName, PATHINFO_EXTENSION)), $this->allowedExtensions)
-            || !\in_array($media->getBinaryContent()->getMimeType(), $this->allowedMimeTypes)) {
+        if (!\in_array(strtolower(pathinfo($fileName, PATHINFO_EXTENSION)), $this->allowedExtensions, true)
+            || !\in_array($media->getBinaryContent()->getMimeType(), $this->allowedMimeTypes, true)) {
             return;
         }
 

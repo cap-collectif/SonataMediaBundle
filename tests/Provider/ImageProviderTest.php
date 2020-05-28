@@ -20,54 +20,56 @@ use Imagine\Image\Box;
 use Imagine\Image\BoxInterface;
 use Imagine\Image\ImageInterface;
 use Imagine\Image\ImagineInterface;
+use PHPUnit\Framework\MockObject\Stub\Stub;
 use Sonata\MediaBundle\CDN\Server;
-use Sonata\MediaBundle\Generator\DefaultGenerator;
+use Sonata\MediaBundle\Generator\IdGenerator;
 use Sonata\MediaBundle\Metadata\MetadataBuilderInterface;
 use Sonata\MediaBundle\Provider\ImageProvider;
+use Sonata\MediaBundle\Provider\MediaProviderInterface;
 use Sonata\MediaBundle\Resizer\ResizerInterface;
 use Sonata\MediaBundle\Tests\Entity\Media;
 use Sonata\MediaBundle\Thumbnail\FormatThumbnail;
 
 class ImageProviderTest extends AbstractProviderTest
 {
-    public function getProvider($allowedExtensions = [], $allowedMimeTypes = [], $box = false)
+    public function getProvider(array $allowedExtensions = [], array $allowedMimeTypes = [], ?Stub $box = null): MediaProviderInterface
     {
         $resizer = $this->createMock(ResizerInterface::class);
-        $resizer->expects($this->any())->method('resize')->will($this->returnValue(true));
+        $resizer->method('resize')->willReturn(true);
         if ($box) {
-            $resizer->expects($this->any())->method('getBox')->will($box);
+            $resizer->method('getBox')->will($box);
         }
 
         $adapter = $this->createMock(Adapter::class);
 
         $filesystem = $this->getMockBuilder(Filesystem::class)
-            ->setMethods(['get'])
+            ->onlyMethods(['get'])
             ->setConstructorArgs([$adapter])
             ->getMock();
         $file = $this->getMockBuilder(File::class)
             ->setConstructorArgs(['foo', $filesystem])
             ->getMock();
-        $filesystem->expects($this->any())->method('get')->will($this->returnValue($file));
+        $filesystem->method('get')->willReturn($file);
 
         $cdn = new Server('/uploads/media');
 
-        $generator = new DefaultGenerator();
+        $generator = new IdGenerator();
 
         $thumbnail = new FormatThumbnail('jpg');
 
         $size = $this->createMock(BoxInterface::class);
-        $size->expects($this->any())->method('getWidth')->will($this->returnValue(100));
-        $size->expects($this->any())->method('getHeight')->will($this->returnValue(100));
+        $size->method('getWidth')->willReturn(100);
+        $size->method('getHeight')->willReturn(100);
 
         $image = $this->createMock(ImageInterface::class);
-        $image->expects($this->any())->method('getSize')->will($this->returnValue($size));
+        $image->method('getSize')->willReturn($size);
 
         $adapter = $this->createMock(ImagineInterface::class);
-        $adapter->expects($this->any())->method('open')->will($this->returnValue($image));
+        $adapter->method('open')->willReturn($image);
 
         $metadata = $this->createMock(MetadataBuilderInterface::class);
 
-        $provider = new ImageProvider('file', $filesystem, $cdn, $generator, $thumbnail, $allowedExtensions, $allowedMimeTypes, $adapter, $metadata);
+        $provider = new ImageProvider('image', $filesystem, $cdn, $generator, $thumbnail, $allowedExtensions, $allowedMimeTypes, $adapter, $metadata);
         $provider->setResizer($resizer);
 
         return $provider;
@@ -93,7 +95,17 @@ class ImageProviderTest extends AbstractProviderTest
         $this->assertSame('default/0011/24/thumb_1023456_big.png', $provider->generatePrivateUrl($media, 'big'));
     }
 
-    public function testHelperProperies(): void
+    public function testHelperOptions(): void
+    {
+        $this->expectException(\LogicException::class);
+
+        $provider = $this->getProvider([], [], $this->returnValue(new Box(50, 50)));
+        $media = new Media();
+
+        $provider->getHelperProperties($media, 'any_format', ['srcset' => [], 'picture' => []]);
+    }
+
+    public function testHelperProperties(): void
     {
         $adminBox = new Box(100, 100);
         $mediumBox = new Box(500, 250);
@@ -109,8 +121,15 @@ class ImageProviderTest extends AbstractProviderTest
                 $mediumBox, // second call
                 $mediumBox,
                 $largeBox,
-                $adminBox // Third call
-            ));
+                $adminBox, // Third call
+                $largeBox, // Fourth call
+                $mediumBox,
+                $largeBox,
+                $largeBox, // Fifth call
+                $mediumBox,
+                $largeBox
+            )
+        );
 
         $provider->addFormat('admin', ['width' => 100]);
         $provider->addFormat('default_medium', ['width' => 500]);
@@ -128,7 +147,7 @@ class ImageProviderTest extends AbstractProviderTest
 
         $properties = $provider->getHelperProperties($media, 'default_large');
 
-        $this->assertInternalType('array', $properties);
+        $this->assertIsArray($properties);
         $this->assertSame('test.png', $properties['title']);
         $this->assertSame(1000, $properties['width']);
         $this->assertSame($srcSet, $properties['srcset']);
@@ -153,6 +172,26 @@ class ImageProviderTest extends AbstractProviderTest
         $this->assertArrayNotHasKey('srcset', $properties);
 
         $this->assertSame(150, $properties['width']);
+
+        $properties = $provider->getHelperProperties($media, 'default_large', ['picture' => ['default_medium', 'default_large'], 'class' => 'some-class']);
+        $this->assertArrayHasKey('picture', $properties);
+        $this->assertArrayNotHasKey('srcset', $properties);
+        $this->assertArrayNotHasKey('sizes', $properties);
+        $this->assertArrayHasKey('source', $properties['picture']);
+        $this->assertArrayHasKey('img', $properties['picture']);
+        $this->assertArrayHasKey('class', $properties['picture']['img']);
+        $this->assertArrayHasKey('media', $properties['picture']['source'][0]);
+        $this->assertSame('(max-width: 500px)', $properties['picture']['source'][0]['media']);
+
+        $properties = $provider->getHelperProperties($media, 'default_large', ['picture' => ['(max-width: 200px)' => 'default_medium', 'default_large'], 'class' => 'some-class']);
+        $this->assertArrayHasKey('picture', $properties);
+        $this->assertArrayNotHasKey('srcset', $properties);
+        $this->assertArrayNotHasKey('sizes', $properties);
+        $this->assertArrayHasKey('source', $properties['picture']);
+        $this->assertArrayHasKey('img', $properties['picture']);
+        $this->assertArrayHasKey('class', $properties['picture']['img']);
+        $this->assertArrayHasKey('media', $properties['picture']['source'][0]);
+        $this->assertSame('(max-width: 200px)', $properties['picture']['source'][0]['media']);
     }
 
     public function testThumbnail(): void
@@ -165,7 +204,7 @@ class ImageProviderTest extends AbstractProviderTest
         $media->setId(1023456);
         $media->setContext('default');
 
-        $this->assertTrue($provider->requireThumbnails($media));
+        $this->assertTrue($provider->requireThumbnails());
 
         $provider->addFormat('big', ['width' => 200, 'height' => 100, 'constraint' => true]);
 
@@ -185,7 +224,6 @@ class ImageProviderTest extends AbstractProviderTest
         $file = new \Symfony\Component\HttpFoundation\File\File(realpath(__DIR__.'/../fixtures/logo.png'));
 
         $media = new Media();
-        $media->setContext('default');
         $media->setBinaryContent($file);
         $media->setId(1023456);
 
@@ -196,7 +234,7 @@ class ImageProviderTest extends AbstractProviderTest
         $this->assertSame('logo.png', $media->getName(), '::getName() return the file name');
         $this->assertNotNull($media->getProviderReference(), '::getProviderReference() is set');
 
-        // post persit the media
+        // post persist the media
         $provider->postPersist($media);
 
         $provider->postRemove($media);
@@ -213,5 +251,16 @@ class ImageProviderTest extends AbstractProviderTest
 
         $this->assertNull($provider->transform($media));
         $this->assertNull($media->getWidth(), 'Width staid null');
+    }
+
+    public function testMetadata(): void
+    {
+        $provider = $this->getProvider();
+
+        $this->assertSame('image', $provider->getProviderMetadata()->getTitle());
+        $this->assertSame('image.description', $provider->getProviderMetadata()->getDescription());
+        $this->assertNotNull($provider->getProviderMetadata()->getImage());
+        $this->assertSame('fa fa-picture-o', $provider->getProviderMetadata()->getOption('class'));
+        $this->assertSame('SonataMediaBundle', $provider->getProviderMetadata()->getDomain());
     }
 }

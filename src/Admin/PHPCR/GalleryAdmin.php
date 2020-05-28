@@ -17,6 +17,9 @@ use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Route\RouteCollection;
 use Sonata\MediaBundle\Admin\GalleryAdmin as BaseGalleryAdmin;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class GalleryAdmin extends BaseGalleryAdmin
 {
     /**
@@ -75,7 +78,10 @@ class GalleryAdmin extends BaseGalleryAdmin
     {
         // Allow path in id parameter
         $collection->add('view', $this->getRouterIdParameter().'/view', [], ['id' => '.+', '_method' => 'GET']);
-        $collection->add('show', $this->getRouterIdParameter().'/show', [
+        $collection->add(
+            'show',
+            $this->getRouterIdParameter().'/show',
+            [
                 '_controller' => sprintf('%s:%s', $this->baseControllerName, 'view'),
             ],
             ['id' => '.+', '_method' => 'GET']

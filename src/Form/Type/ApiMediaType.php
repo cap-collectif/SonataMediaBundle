@@ -21,8 +21,11 @@ use Sonata\MediaBundle\Provider\Pool;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 /**
+ * @final since sonata-project/media-bundle 3.21.0
+ *
  * @author Hugo Briand <briand@ekino.com>
  */
 class ApiMediaType extends AbstractType implements LoggerAwareInterface
@@ -40,7 +43,6 @@ class ApiMediaType extends AbstractType implements LoggerAwareInterface
     protected $class;
 
     /**
-     * @param Pool   $mediaPool
      * @param string $class
      */
     public function __construct(Pool $mediaPool, $class)
@@ -53,7 +55,7 @@ class ApiMediaType extends AbstractType implements LoggerAwareInterface
     /**
      * {@inheritdoc}
      */
-    public function buildForm(FormBuilderInterface $builder, array $options): void
+    public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $dataTransformer = new ProviderDataTransformer($this->mediaPool, $this->class, [
             'empty_on_new' => false,
@@ -67,9 +69,19 @@ class ApiMediaType extends AbstractType implements LoggerAwareInterface
     }
 
     /**
+     * NEXT_MAJOR: Remove this method.
+     *
+     * @deprecated Remove it when bumping requirements to Symfony >=2.7
+     */
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
+    {
+        $this->configureOptions($resolver);
+    }
+
+    /**
      * {@inheritdoc}
      */
-    public function configureOptions(OptionsResolver $resolver): void
+    public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
             'provider_name' => 'sonata.media.provider.image',
@@ -94,7 +106,9 @@ class ApiMediaType extends AbstractType implements LoggerAwareInterface
     }
 
     /**
-     * {@inheritdoc}
+     * NEXT_MAJOR: Remove this method.
+     *
+     * @deprecated since sonata-project/media-bundle 3.22, to be removed in version 4.0.
      */
     public function getName()
     {

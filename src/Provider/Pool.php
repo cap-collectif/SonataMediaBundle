@@ -17,6 +17,9 @@ use Sonata\CoreBundle\Validator\ErrorElement;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Security\DownloadStrategyInterface;
 
+/**
+ * @final since sonata-project/media-bundle 3.21.0
+ */
 class Pool
 {
     /**
@@ -32,7 +35,7 @@ class Pool
     /**
      * NEXT_MAJOR: remove this property.
      *
-     * @deprecated Deprecated since version 3.1 and will be removed in 4.0. Use $downloadStrategies instead
+     * @deprecated since sonata-project/media-bundle 3.1 and will be removed in 4.0. Use $downloadStrategies instead
      *
      * @var DownloadStrategyInterface[]
      */
@@ -79,10 +82,9 @@ class Pool
     }
 
     /**
-     * @param string                 $name
-     * @param MediaProviderInterface $instance
+     * @param string $name
      */
-    public function addProvider($name, MediaProviderInterface $instance): void
+    public function addProvider($name, MediaProviderInterface $instance)
     {
         $this->providers[$name] = $instance;
     }
@@ -90,12 +92,11 @@ class Pool
     /**
      * NEXT_MAJOR: remove this method.
      *
-     * @deprecated Deprecated since version 3.1, to be removed in 4.0
+     * @deprecated since sonata-project/media-bundle 3.1, to be removed in 4.0
      *
-     * @param string                    $name
-     * @param DownloadStrategyInterface $security
+     * @param string $name
      */
-    public function addDownloadSecurity($name, DownloadStrategyInterface $security): void
+    public function addDownloadSecurity($name, DownloadStrategyInterface $security)
     {
         @trigger_error(
             'The '.__METHOD__.' method is deprecated since version 3.1 and will be removed in 4.0.',
@@ -108,10 +109,9 @@ class Pool
     }
 
     /**
-     * @param string                    $name
-     * @param DownloadStrategyInterface $security
+     * @param string $name
      */
-    public function addDownloadStrategy($name, DownloadStrategyInterface $security): void
+    public function addDownloadStrategy($name, DownloadStrategyInterface $security)
     {
         $this->downloadStrategies[$name] = $security;
     }
@@ -119,7 +119,7 @@ class Pool
     /**
      * @param array $providers
      */
-    public function setProviders($providers): void
+    public function setProviders($providers)
     {
         $this->providers = $providers;
     }
@@ -134,11 +134,8 @@ class Pool
 
     /**
      * @param string $name
-     * @param array  $providers
-     * @param array  $formats
-     * @param array  $download
      */
-    public function addContext($name, array $providers = [], array $formats = [], array $download = []): void
+    public function addContext($name, array $providers = [], array $formats = [], array $download = [])
     {
         if (!$this->hasContext($name)) {
             $this->contexts[$name] = [
@@ -255,9 +252,7 @@ class Pool
     /**
      * NEXT_MAJOR: remove this method.
      *
-     * @deprecated Deprecated since version 3.1, to be removed in 4.0
-     *
-     * @param MediaInterface $media
+     * @deprecated since sonata-project/media-bundle 3.1, to be removed in 4.0
      *
      * @throws \RuntimeException
      *
@@ -271,8 +266,6 @@ class Pool
     }
 
     /**
-     * @param MediaInterface $media
-     *
      * @throws \RuntimeException
      *
      * @return DownloadStrategyInterface
@@ -296,8 +289,6 @@ class Pool
     }
 
     /**
-     * @param MediaInterface $media
-     *
      * @return string
      */
     public function getDownloadMode(MediaInterface $media)
@@ -315,11 +306,7 @@ class Pool
         return $this->defaultContext;
     }
 
-    /**
-     * @param ErrorElement   $errorElement
-     * @param MediaInterface $media
-     */
-    public function validate(ErrorElement $errorElement, MediaInterface $media): void
+    public function validate(ErrorElement $errorElement, MediaInterface $media)
     {
         if (!$media->getProviderName()) {
             return;
