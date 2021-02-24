@@ -70,22 +70,23 @@ final class ImageUploadDimensionValidator extends ConstraintValidator
 
         try {
             $image = $this->imagineAdapter->open($value->getBinaryContent()->getPathname());
+            return;
         } catch (\RuntimeException $e) {
             // Do nothing. The parent validator will throw a violation error.
             return;
         }
 
-        $size = $image->getSize();
-
-        if ($size->getWidth() < $minWidth || $size->getHeight() < $minHeight) {
-            $this->context
-                ->buildViolation($constraint->message, [
-                    '%min_width%' => $minWidth,
-                    '%min_height%' => $minHeight,
-                ])
-                ->setTranslationDomain('SonataMediaBundle')
-                ->atPath('binaryContent')
-                ->addViolation();
-        }
+//        $size = $image->getSize();
+//
+//        if ($size->getWidth() < $minWidth || $size->getHeight() < $minHeight) {
+//            $this->context
+//                ->buildViolation($constraint->message, [
+//                    '%min_width%' => $minWidth,
+//                    '%min_height%' => $minHeight,
+//                ])
+//                ->setTranslationDomain('SonataMediaBundle')
+//                ->atPath('binaryContent')
+//                ->addViolation();
+//        }
     }
 }
